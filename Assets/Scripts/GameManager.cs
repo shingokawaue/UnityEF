@@ -45,37 +45,7 @@ public class GameManager : MonoBehaviour
 	public const int UP = 2;
 	public const int RIGHT = 3;
 
-	//ZoomStage
-	public const int ZOOMSTAGE_NON = 0;
-	public const int ZOOMSTAGE_ZOOM = 1;
-	public const int ZOOMSTAGE_ZOOMZOOM = 2;
-	public const int ZOOMSTAGE_ADD = 3;
 
-	//ScreenNo
-	enum EScreenNo
-	{
-		SCREEN_WALLLEFT,
-		//0
-		SCREEN_WALLFRONT,
-		SCREEN_WALLRIGHT,
-		SCREEN_WALLBACK,
-		SCREEN_ZOOMSTAGE_DESKLEFT,
-		SCREEN_ZOOMSTAGE_DESKRIGHT,
-		//5
-		SCREEN_ZOOMZOOMSTAGE_DESKLEFTTOP,
-		SCREEN_ZOOMZOOMSTAGE_DESKLEFTMIDDLE,
-		SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOM,
-		SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOMOPEN,
-		SCREEN_ZOOMSTAGE_4X2SHELF,
-		//10
-		SCREEN_ZOOMZOOMSTAGE_STARBOX,
-		SCREEN_ZOOMSTAGE_LOOKUP_SHELF,
-		SCREEN_ADDSTAGE_4X2SHELFLEFT,
-        SCREEN_ZOOMZOOMSTAGE_HIGHSHELFZOOM,
-        SCREEN_ADDSTAGE_4X2SHELFRIGHT,
-
-		SCREEN_NUM
-	}
 		
 	//GameFlag
 	enum EGameFlag : int
@@ -160,6 +130,10 @@ public class GameManager : MonoBehaviour
 	public GameObject imageNoChair;
     public GameObject imagePutChair;
 
+    public GameObject imageWallRightBanana1;
+    public GameObject imageKitchenShelfBanana1;
+    public GameObject imageKitchenShelfZoomMonkeyBanana1;
+
 	public GameObject[] buttonDirection = new GameObject[4];
 	public GameObject[] buttonColors = new GameObject[3];
 
@@ -180,6 +154,45 @@ public class GameManager : MonoBehaviour
 	private int[] buttonColor = new int[3];
 
 
+
+    //ZoomStage
+    public const int ZOOMSTAGE_NON = 0;
+    public const int ZOOMSTAGE_ZOOM = 1;
+    public const int ZOOMSTAGE_ZOOMZOOM = 2;
+    public const int ZOOMSTAGE_ADD = 3;
+
+    //ScreenNo
+    enum EScreenNo
+    {
+        SCREEN_WALLLEFT,
+        //0
+        SCREEN_WALLFRONT,
+        SCREEN_WALLRIGHT,
+        SCREEN_WALLBACK,
+        SCREEN_ZOOMSTAGE_DESKLEFT,
+        SCREEN_ZOOMSTAGE_DESKRIGHT,
+        //5
+        SCREEN_ZOOMZOOMSTAGE_DESKLEFTTOP,
+        SCREEN_ZOOMZOOMSTAGE_DESKLEFTMIDDLE,
+        SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOM,
+        SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOMOPEN,
+        SCREEN_ZOOMSTAGE_4X2SHELF,
+        //10
+        SCREEN_ZOOMZOOMSTAGE_STARBOX,
+        SCREEN_ZOOMSTAGE_LOOKUP_SHELF,
+        SCREEN_ADDSTAGE_4X2SHELFLEFT,
+        SCREEN_ZOOMZOOMSTAGE_HIGHSHELFZOOM,
+        SCREEN_ADDSTAGE_4X2SHELFRIGHT,
+        //15
+        SCREEN_ZOOMSTAGE_TRASHBOX,
+        SCREEN_ZOOMZOOMSTAGE_TRASHBOXINSIDE,
+        SCREEN_ZOOMSTAGE_KITCHENSHELF,
+        SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY,
+		SCREEN_ZOOMSTAGE_TRASHBOXUP,
+        //20
+
+        SCREEN_NUM
+    }
 	//------------------------------------------------------------
 	//初期化
 	//------------------------------------------------------------
@@ -200,7 +213,8 @@ public class GameManager : MonoBehaviour
 		screen [(int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT] = new Screen (0, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLFRONT);
 		screen [(int)EScreenNo.SCREEN_ZOOMSTAGE_DESKRIGHT] = new Screen (1125, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLFRONT);
 		screen [(int)EScreenNo.SCREEN_ZOOMSTAGE_LOOKUP_SHELF] = new Screen (2250, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLRIGHT);
-
+        screen[(int)EScreenNo.SCREEN_ZOOMSTAGE_TRASHBOX] = new Screen(-2250, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLLEFT);
+		screen[(int)EScreenNo.SCREEN_ZOOMSTAGE_TRASHBOXUP] = new Screen(-3375, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLLEFT);
 
         screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOX] = new Screen (-1125, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT);
 		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTTOP] = new Screen (0, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, SOUND_DRAWEROPEN1, SOUND_DRAWEROPEN1);
@@ -211,7 +225,9 @@ public class GameManager : MonoBehaviour
 
 		screen [(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFLEFT] = new Screen (-1125, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
         screen[(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT] = new Screen(-2250, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
-
+        screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_TRASHBOXINSIDE] = new Screen(-3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_TRASHBOX);
+        screen[(int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF] = new Screen(3375, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLRIGHT);
+        screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY] = new Screen(4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF);
 
 		buttonColor [0] = COLOR_GREEN;
 		buttonColor [1] = COLOR_RED;
@@ -442,9 +458,9 @@ public class GameManager : MonoBehaviour
 		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_DECISION22);
 
 		if (buttonDirection [0].GetComponent<ButtonDirectionManager> ().direction == UP &&
-		    buttonDirection [1].GetComponent<ButtonDirectionManager> ().direction == RIGHT &&
+		    buttonDirection [1].GetComponent<ButtonDirectionManager> ().direction == LEFT &&
 		    buttonDirection [2].GetComponent<ButtonDirectionManager> ().direction == DOWN &&
-		    buttonDirection [3].GetComponent<ButtonDirectionManager> ().direction == LEFT) {
+		    buttonDirection [3].GetComponent<ButtonDirectionManager> ().direction == RIGHT) {
 			gameFlag.Add ("Open_DirBox");
 			foreach (GameObject btn in buttonDirection) {
 				btn.GetComponent<ButtonDirectionManager> ().enabled = false;
@@ -505,7 +521,7 @@ public class GameManager : MonoBehaviour
 
 	public void Click_AreaPutChair ()
 	{
-		if (gameFlag.Contains ("Get_Chair") && gameFlag.Contains ("Use_Chair") == false) {
+		if (buttonItemView.GetComponent<ButtonItemView>().selected == "Chair") {
             imagePutChair.GetComponent<Image>().enabled = true;
             gameFlag.Add("Use_Chair");
             audioManager.GetComponent<AudioManager>().PlaySE(SOUND_CURSOR1);
@@ -524,6 +540,18 @@ public class GameManager : MonoBehaviour
             MovingScreen((int)EScreenNo.SCREEN_ZOOMSTAGE_LOOKUP_SHELF);
         }
 
+    }
+
+    public void Click_AreaKitchenShelfZoomMonkey(){
+        if (buttonItemView.GetComponent<ButtonItemView>().selected == "Banana")
+        {
+            imageKitchenShelfZoomMonkeyBanana1.GetComponent<Image>().enabled = true;
+            imageKitchenShelfBanana1.GetComponent<Image>().enabled = true;
+            imageWallRightBanana1.GetComponent<Image>().enabled = true;
+            gameFlag.Add("Use_Banana");
+            audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+            buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Banana");
+        }
     }
 	//------------------------------------------------------------
 	//その他
