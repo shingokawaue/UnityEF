@@ -66,13 +66,6 @@ public class GameManager : MonoBehaviour
 		NUMOFFLAG
 	}
 
-	List<string> gameFlag = new List<string> ();
-
-	//Item
-	public const int ITEM_CHAIR = 0;
-	public const int ITEM_TONKACHI = 1;
-	public const int ITEM_GINGER1 = 2;
-	public const int ITEM_PENCIL = 3;
 
 	//------------------------------------------------------------
 	//構造体定義
@@ -161,6 +154,11 @@ public class GameManager : MonoBehaviour
     public const int ZOOMSTAGE_ZOOMZOOM = 2;
     public const int ZOOMSTAGE_ADD = 3;
 
+	List<string> gameFlag = new List<string>();//ゲームフラグ
+    //GetXXX UseXXX OpenXXX というstringを追加する
+
+
+
     //ScreenNo
     enum EScreenNo
     {
@@ -190,6 +188,8 @@ public class GameManager : MonoBehaviour
         SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY,
 		SCREEN_ZOOMSTAGE_TRASHBOXUP,
         //20
+		SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN,
+
 
         SCREEN_NUM
     }
@@ -222,12 +222,14 @@ public class GameManager : MonoBehaviour
 		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOM] = new Screen (2250, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT);
 		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOMOPEN] = new Screen (3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, SOUND_DRAWEROPEN1, SOUND_DRAWEROPEN1);
         screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_HIGHSHELFZOOM] = new Screen(-2250, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_WALLRIGHT);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN] = new Screen(-4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_TRASHBOXINSIDE] = new Screen(-3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_TRASHBOX);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY] = new Screen(4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF);
 
 		screen [(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFLEFT] = new Screen (-1125, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
         screen[(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT] = new Screen(-2250, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
-        screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_TRASHBOXINSIDE] = new Screen(-3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_TRASHBOX);
+
         screen[(int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF] = new Screen(3375, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLRIGHT);
-        screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY] = new Screen(4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF);
 
 		buttonColor [0] = COLOR_GREEN;
 		buttonColor [1] = COLOR_RED;
@@ -239,7 +241,7 @@ public class GameManager : MonoBehaviour
 
 
 	}
-	
+
 	//------------------------------------------------------------
 	//
 	//------------------------------------------------------------
@@ -330,6 +332,17 @@ public class GameManager : MonoBehaviour
 			buttonUIBack.SetActive (true);
 			buttonUILeft.SetActive (false);
 			buttonUIRight.SetActive (false);
+		}
+	}
+    
+	public void ItemViewClicked(){
+		if(buttonItemView.GetComponent<ButtonItemView>().shown == "PencilSharpner"
+		   && buttonItemView.GetComponent<ButtonItemView>().selected == "Pencil"){
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Pencil");
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("PencilSharpner");
+			buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
+			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+			buttonItemView.GetComponent<ButtonItemView>().GetItem("SharpedPencil");
 		}
 	}
 	//------------------------------------------------------------
@@ -479,6 +492,14 @@ public class GameManager : MonoBehaviour
 
 	public void PushButtonColors ()
 	{
+
+
+        if (gameFlag.Contains("Open_StarBox"))
+        {
+            MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN);
+			return;
+        }
+
 		if (buttonColors [0].GetComponent<ButtonWithNumber> ().enabled == false)
 			return;
 
@@ -497,6 +518,9 @@ public class GameManager : MonoBehaviour
 			StartCoroutine (DelayMethod (0.3f, () => {
 				audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_KEY_IN2);
 			}));
+            StartCoroutine(DelayMethod(1.0f, () => {
+				MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN);
+            }));
 		}
 
 	}
@@ -525,7 +549,7 @@ public class GameManager : MonoBehaviour
             imagePutChair.GetComponent<Image>().enabled = true;
             gameFlag.Add("Use_Chair");
             audioManager.GetComponent<AudioManager>().PlaySE(SOUND_CURSOR1);
-            buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Chair");
+            buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("Chair");
 		}
 	}
 
@@ -550,9 +574,15 @@ public class GameManager : MonoBehaviour
             imageWallRightBanana1.GetComponent<Image>().enabled = true;
             gameFlag.Add("Use_Banana");
             audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
-            buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Banana");
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("Banana");
         }
     }
+
+	public void Click_AreaStarBoxOpened(){
+		if(gameFlag.Contains("Open_StarBox")){
+			MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN);
+        }
+	}
 	//------------------------------------------------------------
 	//その他
 	//------------------------------------------------------------

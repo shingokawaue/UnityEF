@@ -14,6 +14,8 @@ using UnityEngine.EventSystems;
 /// </summary>
 public class ButtonItemView : MonoBehaviour
 {
+	private GameObject gameManager;//Startメソッドで初期化
+
 	public GameObject buttonItemIcon;
     //プレハブからアタッチ
 
@@ -58,12 +60,13 @@ public class ButtonItemView : MonoBehaviour
 		buttonDark.transform.SetParent (this.transform.root.gameObject.transform);
 		buttonDark.transform.localScale = Vector3.one;
 		buttonDark.transform.localPosition = Vector3.zero;
-		buttonDark.transform.SetSiblingIndex (0);
+		buttonDark.transform.SetSiblingIndex (transform.GetSiblingIndex());
 
 	}
 	// Use this for initialization
 	void Start ()
 	{
+		gameManager = GameObject.Find("GameManager");
 		getFlag = false;
 		isShowing = false;
 		GetComponent<RectTransform> ().sizeDelta = new Vector2 (SIZE_VIEW, SIZE_VIEW);
@@ -141,12 +144,17 @@ public class ButtonItemView : MonoBehaviour
 		newb.GetComponent<RectTransform> ().sizeDelta = new Vector2 (SIZE_ICON, SIZE_ICON);
 		newb.transform.SetParent (this.transform.root.gameObject.transform);
 		newb.transform.localScale = Vector3.one;    //親子関係セット直後はサイズがおかしくなるので、ローカルサイズを１にセット
-        newb.transform.SetSiblingIndex(0);
+        newb.transform.SetSiblingIndex(transform.GetSiblingIndex() + 1);
 		items.Add (newb);
 
 
 
 		ShowItem (name);
+	}
+
+	public void RemoveItemAndUpdatePos(string name){
+		RemoveItem(name);
+		IconPosUpdate();
 	}
 
     public void RemoveItem(string name)
@@ -164,9 +172,14 @@ public class ButtonItemView : MonoBehaviour
             selected = "";
         }
 
-        for (i = 0; i < items.Count; ++i){//アイコンの位置整理
-            
-            if( (int)items[i].transform.localPosition.x != (int)(iconPos.x + (SIZE_ICON + ICONMARGIN) * (items.Count - (i +1)) )  )
+       
+    }
+
+	public void IconPosUpdate(){
+		for (int i = 0; i < items.Count; ++i)
+        {//アイコンの位置整理
+
+            if ((int)items[i].transform.localPosition.x != (int)(iconPos.x + (SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1))))
             {
                 StartCoroutine(
                     MovePos(items[i], new Vector3(iconPos.x + -(SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1))
@@ -175,7 +188,7 @@ public class ButtonItemView : MonoBehaviour
             }
 
         }
-    }
+	}
 
 	public void IconClicked (GameObject obj)
 	{
@@ -193,11 +206,11 @@ public class ButtonItemView : MonoBehaviour
             return;
         }
 
-        if (isShowing == true && obj.name == shown)//ビューが表示されてて、そのアイテムをクリック
-        {
-            HideItem();
-            return;
-        }
+        //if (isShowing == true && obj.name == shown)//ビューが表示されてて、そのアイテムをクリック
+        //{
+        //    HideItem();
+        //    return;
+        //}
 
         if (obj.name != selected)
         {//白いとこクリック
@@ -225,6 +238,7 @@ public class ButtonItemView : MonoBehaviour
             StartCoroutine(MovePos(this.gameObject , Vector3.zero));//真ん中へ
             GetComponent<RectTransform>().sizeDelta = new Vector2(SIZE_ICON,SIZE_ICON);
             StartCoroutine(ChangeSize(this.gameObject, new Vector2(SIZE_VIEW,SIZE_VIEW)));
+			buttonDark.GetComponent<Image>().enabled = true;
             shown = obj.name;
             isShowing = true;
         }
@@ -262,7 +276,7 @@ public class ButtonItemView : MonoBehaviour
         }
         obj.GetComponent<RectTransform>().sizeDelta = startSize + changeSize;
 
-        if (isShowing && GetComponent<RectTransform>().sizeDelta.x == SIZE_VIEW)
+        if (isShowing && (int)GetComponent<RectTransform>().sizeDelta.x == (int)SIZE_VIEW)
         {
             buttonClose.GetComponent<Image>().enabled = true; //ビューが最大化されたら閉じるボタン表示
         }
@@ -337,8 +351,6 @@ public class ButtonItemView : MonoBehaviour
 	public void OnClick ()
 	{
 		//ご自由にお使いください
-        if(shown == "PencilSharpner" && selected == "Pencil"){
-            //音欲しい。。
-        }
+		gameManager.GetComponent<GameManager>().ItemViewClicked();
 	}
 }
