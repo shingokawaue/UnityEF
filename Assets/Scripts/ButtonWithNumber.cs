@@ -10,7 +10,7 @@ public class ButtonWithNumber : MonoBehaviour
 	public int MAXNO = 9;
 	public int MINNO = 0;
 	public int number;
-	public bool enabled = true;
+	public bool canpush = true;
 
 	private GameObject text;
 	//子
@@ -30,7 +30,7 @@ public class ButtonWithNumber : MonoBehaviour
 
 	public void PointerDown ()
 	{
-		if (enabled == false)
+		if (canpush == false)
 			return;
 
 		GetComponent<Image> ().color = new Color (1.0f, 1.0f, 1.0f, 1.0f);
