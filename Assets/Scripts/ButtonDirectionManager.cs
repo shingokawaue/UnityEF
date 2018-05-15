@@ -24,7 +24,7 @@ public class ButtonDirectionManager : MonoBehaviour
 	public int direction = 0;
 	public GameObject directionImage;
 
-	public bool enabled = true;
+	public bool canpush = true;
 	//方向を示す画像
 
 
@@ -81,7 +81,7 @@ public class ButtonDirectionManager : MonoBehaviour
 
 	public void PointerDown ()
 	{
-		if (enabled == false)
+		if (canpush == false)
 			return;
 		
 		IsPress = true;
@@ -98,7 +98,7 @@ public class ButtonDirectionManager : MonoBehaviour
 
 	public void PointerUp ()
 	{
-		if (enabled == false)
+		if (canpush == false)
 			return;
 
 		IsPress = false;

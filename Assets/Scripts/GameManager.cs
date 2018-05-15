@@ -39,6 +39,8 @@ public class GameManager : MonoBehaviour
 	public const string SOUND_KEY_IN2 = "key-in2";
 	public const string SOUND_CURSOR7 = "cursor7";
     public const string SOUND_CURSOR1 = "cursor1";
+	public const string SOUND_SHAKASHAKA = "shakashaka01";
+	public const string SOUND_KEZURI = "kezuri01";
 	//direction
 	public const int DOWN = 0;
 	public const int LEFT = 1;
@@ -125,12 +127,16 @@ public class GameManager : MonoBehaviour
 
     public GameObject imageWallRightBanana1;
     public GameObject imageKitchenShelfBanana1;
+	public GameObject imageKitchenShelfBanana2;
     public GameObject imageKitchenShelfZoomMonkeyBanana1;
+	public GameObject imageKitchenShelfZoomMonkeyBanana2;
+
 
 	public GameObject[] buttonDirection = new GameObject[4];
 	public GameObject[] buttonColors = new GameObject[3];
+	public GameObject[] buttonNumbers = new GameObject[4];
 
-
+	public GameObject pencilAnimation;
 
 	public Sprite[] buttonPicture = new Sprite[4];
 	public Sprite hammerPicture;
@@ -145,8 +151,7 @@ public class GameManager : MonoBehaviour
 
 
 	private int[] buttonColor = new int[3];
-
-
+	private bool[] lrJudge = new bool[7];
 
     //ZoomStage
     public const int ZOOMSTAGE_NON = 0;
@@ -191,6 +196,7 @@ public class GameManager : MonoBehaviour
 		SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN,
 		SCREEN_ZOOMSTAGE_4X2SHELFHINT,
         SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEYEYES,
+        SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFTOPOPEN,
 
         SCREEN_NUM
     }
@@ -199,6 +205,7 @@ public class GameManager : MonoBehaviour
 	//------------------------------------------------------------
 	void Start ()
 	{
+		buttonMessage.SetActive(false);
 		wallNo = WALL_FRONT;
 		screenNo = (int)EScreenNo.SCREEN_WALLFRONT;
 		lr = 0;
@@ -229,6 +236,7 @@ public class GameManager : MonoBehaviour
 		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_TRASHBOXINSIDE] = new Screen(-3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_TRASHBOX);
 		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY] = new Screen(4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF);
         screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEYEYES] = new Screen(5625, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFTOPOPEN] = new Screen(-5625, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF, SOUND_DRAWEROPEN1, SOUND_DRAWEROPEN1);
 
 		screen [(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFLEFT] = new Screen (-1125, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
         screen[(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT] = new Screen(-2250, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
@@ -254,7 +262,7 @@ public class GameManager : MonoBehaviour
 		
 
 		if (panelWalls.GetComponent<PanelSlider> ().isSliding == false) {//ズームしてない視点の回転移動（スライド
-			if (panelWalls.transform.localPosition.x == -4500.0f) {//ダミーへ移動したあとの処理
+			if ((int)panelWalls.transform.localPosition.x == (int)-4500.0f) {//ダミーへ移動したあとの処理
 				panelWalls.transform.localPosition = new Vector3 (0.0f, 0.0f, 0.0f);
 				panelWall1.transform.localPosition = new Vector3 (0.0f, 0.0f, 0.0f);
 			}
@@ -345,8 +353,30 @@ public class GameManager : MonoBehaviour
 			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Pencil");
 			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("PencilSharpner");
 			buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
-			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
-			buttonItemView.GetComponent<ButtonItemView>().GetItem("SharpedPencil");
+			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_KEZURI);
+			buttonItemView.GetComponent<ButtonItemView>().cantap = false;
+            StartCoroutine(DelayMethod(1.0f, () =>
+            {
+				audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+				buttonItemView.GetComponent<ButtonItemView>().GetItem("SharpedPencil");
+				buttonItemView.GetComponent<ButtonItemView>().cantap = true;
+            }));
+		}
+        
+		if (buttonItemView.GetComponent<ButtonItemView>().shown == "Paper"
+		   && buttonItemView.GetComponent<ButtonItemView>().selected == "SharpedPencil")
+		{
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("SharpedPencil");
+			buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
+			pencilAnimation.SetActive(true);
+			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_SHAKASHAKA);
+			StartCoroutine(buttonItemView.GetComponent<ButtonItemView>().ViewItemChangeTo(4.8f, "PaperDraw"));
+
+            StartCoroutine(DelayMethod(4.8f, () =>
+            {
+                audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+				pencilAnimation.SetActive(false);
+            }));
 		}
 	}
 	//------------------------------------------------------------
@@ -365,6 +395,7 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 		DisplayWall ();
+		ClearButtons();
 	}
 
 	void WallToLeft ()//ズームしてない視点の回転移動（スライド
@@ -438,6 +469,7 @@ public class GameManager : MonoBehaviour
 			break;
 		}
 		screenNo = srNo;
+		ClearButtons();
 		UpdateUIButtons ();
 	}
 
@@ -469,7 +501,7 @@ public class GameManager : MonoBehaviour
 
 	public void PushButtonDirection ()//方角の仕掛け
 	{
-		if (buttonDirection [0].GetComponent<ButtonDirectionManager> ().enabled == false)
+		if (buttonDirection [0].GetComponent<ButtonDirectionManager> ().canpush == false)
 			return;
 
 		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_DECISION22);
@@ -480,7 +512,7 @@ public class GameManager : MonoBehaviour
 		    buttonDirection [3].GetComponent<ButtonDirectionManager> ().direction == RIGHT) {
 			gameFlag.Add ("Open_DirBox");
 			foreach (GameObject btn in buttonDirection) {
-				btn.GetComponent<ButtonDirectionManager> ().enabled = false;
+				btn.GetComponent<ButtonDirectionManager> ().canpush = false;
 			}
 
 			//0.5秒後に実行する
@@ -504,7 +536,7 @@ public class GameManager : MonoBehaviour
 			return;
         }
 
-		if (buttonColors [0].GetComponent<ButtonWithNumber> ().enabled == false)
+		if (buttonColors [0].GetComponent<ButtonWithNumber> ().canpush == false)
 			return;
 
 		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_DECISION22);
@@ -515,7 +547,7 @@ public class GameManager : MonoBehaviour
 			gameFlag.Add ("Open_StarBox");
 
 			foreach (GameObject btn in buttonColors) {
-				btn.GetComponent<ButtonWithNumber> ().enabled = false;
+				btn.GetComponent<ButtonWithNumber> ().canpush = false;
 			}
 
 			//0.5秒後に実行する
@@ -529,7 +561,36 @@ public class GameManager : MonoBehaviour
 
 	}
 
+	public void PushButtonNumbers()
+	{
+		audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION22);
+		if (buttonNumbers[0].GetComponent<ButtonWithNumber>().number == 3 &&
+			buttonNumbers[1].GetComponent<ButtonWithNumber>().number == 7 &&
+			buttonNumbers[2].GetComponent<ButtonWithNumber>().number == 8 &&
+			buttonNumbers[3].GetComponent<ButtonWithNumber>().number == 1)
+		{
+			gameFlag.Add("Open_NumberBox");
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("PaperDraw");
+			foreach (GameObject btn in buttonNumbers)
+			{
+				btn.GetComponent<ButtonWithNumber>().enabled = false;
+			}
+			//0.5秒後に実行する
+			StartCoroutine(DelayMethod(0.3f, () =>
+			{
+				audioManager.GetComponent<AudioManager>().PlaySE(SOUND_KEY_IN2);
+			}));
+		}
+	}
 
+
+	public void PushButtonLR(bool isRight){
+		audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION22);
+		for (int i = lrJudge.Length - 1; i > 0;--i){
+			lrJudge[i] = lrJudge[i - 1];
+		}
+		lrJudge[0] = isRight;
+	}
 	//------------------------------------------------------------
 	//クリックエリア押した時
 	//------------------------------------------------------------
@@ -544,7 +605,7 @@ public class GameManager : MonoBehaviour
 
 	public void Click_AreaLookUpShelf ()
 	{
-			DisplayMessage ("高すぎて見えないよバカヤロウ");
+			DisplayMessage ("高くてとどかない。");
 	}
 
 	public void Click_AreaPutChair ()
@@ -571,15 +632,26 @@ public class GameManager : MonoBehaviour
     }
 
     public void Click_AreaKitchenShelfZoomMonkey(){
-        if (buttonItemView.GetComponent<ButtonItemView>().selected == "Banana")
+        if (buttonItemView.GetComponent<ButtonItemView>().selected == "Banana"
+		    || buttonItemView.GetComponent<ButtonItemView>().selected == "Banana2")
         {
-            imageKitchenShelfZoomMonkeyBanana1.GetComponent<Image>().enabled = true;
-            imageKitchenShelfBanana1.GetComponent<Image>().enabled = true;
-            imageWallRightBanana1.GetComponent<Image>().enabled = true;
-            gameFlag.Add("Use_Banana");
-            audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
-			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("Banana");
+			if (gameFlag.Contains("Use_Banana") == false)
+			{
+				imageKitchenShelfZoomMonkeyBanana1.GetComponent<Image>().enabled = true;
+				imageKitchenShelfBanana1.GetComponent<Image>().enabled = true;
+				imageWallRightBanana1.GetComponent<Image>().enabled = true;
+				gameFlag.Add("Use_Banana");
+			}else{
+				imageKitchenShelfZoomMonkeyBanana2.GetComponent<Image>().enabled = true;
+                imageKitchenShelfBanana2.GetComponent<Image>().enabled = true;
+                //imageWallRightBanana2.GetComponent<Image>().enabled = true;
+                gameFlag.Add("Use_Banana2");
+			}
+           
+			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+            buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(buttonItemView.GetComponent<ButtonItemView>().selected);
         }
+  
     }
 
 	public void Click_AreaStarBoxOpened(){
@@ -587,6 +659,26 @@ public class GameManager : MonoBehaviour
 			MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN);
         }
 	}
+
+	public void Click_AreaKitchenShelfTop(){
+        if (gameFlag.Contains("Use_RedKey"))
+        {
+            MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFTOPOPEN);
+            return;
+        }
+
+        if (buttonItemView.GetComponent<ButtonItemView>().selected == "RedKey")
+        {
+            gameFlag.Add("Use_RedKey");
+            buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("RedKey");
+            MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFTOPOPEN);
+            return;
+        }
+
+		DisplayMessage("カギがかかっている。");
+        //カタカタ鳴らす
+	}
+
 	//------------------------------------------------------------
 	//その他
 	//------------------------------------------------------------
@@ -599,7 +691,7 @@ public class GameManager : MonoBehaviour
 
 
 
-	void DisplayMessage (string mes)
+	public void DisplayMessage (string mes)
 	{
 		buttonMessage.SetActive (true);
 		buttonMessageText.GetComponent<Text> ().text = mes;

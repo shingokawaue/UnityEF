@@ -5,24 +5,21 @@ using UnityEngine.UI;
 
 using UnityEngine.EventSystems;
 /// <summary>
-/// Button item view UIとして画面の手前で使う感じです 
-/// ButtonDarkをButtonItemViewの上に置いてアタッチする//(非親子)
-/// ImageFlameと、ButtonCloseをボタンの子として作ってアタッチ
-/// spriteItemsにアイテムの画像をアタッチ
-/// 小さいアイコンのボタンをButtonItemViewの下に作ってアタッチ(非親子)
-/// 
+/// Button item view UIとして画面の手前で使う感じです
+/// buttonDarkとbuttonCloseはPrefabに置いておく
+/// アセットの　Image/ItemPanel/ にアイテム画像を入れておいてファイル名で読み込む
 /// </summary>
 public class ButtonItemView : MonoBehaviour
 {
 	private GameObject gameManager;//Startメソッドで初期化
 
 	public GameObject buttonItemIcon;
-    //プレハブからアタッチ
-
+	//プレハブからアタッチ
+	public bool cantap = true;
 
     //適当な画像の入ってないImageをアタッチ
 	public float duration = 0.5f;
-
+    
 	public const float SIZE_VIEW = 800.0f;
 
 
@@ -32,9 +29,10 @@ public class ButtonItemView : MonoBehaviour
     public float DOUBLETAPTIME = 0.30f;
     private float PreviousTapTime;//ダブルタップ判定用
 	//ボタンの大きさと合わせる
-	public GameObject imageFlame;
-	public GameObject buttonClose;
-	public GameObject buttonDark;
+	public GameObject imageFlame;//子として作っておきアタッチ
+	public GameObject imageForViewChange;//子として作っておきアタッチ
+	public GameObject buttonClose;//プレハブをアタッチ、Constantiate
+	public GameObject buttonDark;//プレハブをアタッチ、Constantiate
 	//public Button[] icons;
 	//アイテム個数分の要素があって、あらかじめシーンにボタンを作ってアタッチ。アイテムを手に入れたらImageを設定する
 
@@ -70,6 +68,7 @@ public class ButtonItemView : MonoBehaviour
 		getFlag = false;
 		isShowing = false;
 		GetComponent<RectTransform> ().sizeDelta = new Vector2 (SIZE_VIEW, SIZE_VIEW);
+		imageForViewChange.GetComponent<RectTransform>().sizeDelta = new Vector2(SIZE_VIEW, SIZE_VIEW);
 		buttonClose = Instantiate (buttonClose);
 		buttonClose.transform.SetParent (this.transform.root.gameObject.transform);
 		buttonClose.transform.localScale = Vector3.one;
@@ -79,14 +78,13 @@ public class ButtonItemView : MonoBehaviour
 	}
 	
 	// Update is called once per frame
-	public void Update ()//なぜか呼ばれない。謎
+	public void Update ()
 	{
-        //if (taped != "" && (Time.time - doubleTapStartTime) > DOUBLETAPTIME ){//シングルタップ判定
-        //    singletaped = true;
-        //    IconClicked( items.Find(hoge => hoge.name == taped) );
-        //}
-
-
+  
+        if (isShowing && (int)GetComponent<RectTransform>().sizeDelta.x == (int)SIZE_VIEW)
+        {
+            buttonClose.GetComponent<Image>().enabled = true; //ビューが最大化されたら閉じるボタン表示
+        }
 	}
 
 	public void ShowItem (string name)
@@ -121,17 +119,50 @@ public class ButtonItemView : MonoBehaviour
 		this.GetComponent<Image> ().enabled = false;
 
 	}
+    
+	public IEnumerator ViewItemChangeTo(float changetime ,string name){//表示されているビューのアイテムを引数のアイテムに変える
+        Sprite spr = Resources.Load("Image/ItemPanel/" + name, typeof(Sprite)) as Sprite;
+
+        if (spr == null)
+        {
+            Debug.Log(name + "というアイテムはありません");
+			yield break;
+        }
+		cantap = false;
+
+		imageForViewChange.SetActive(true);
+		imageForViewChange.GetComponent<Image>().sprite = spr;
+		imageForViewChange.GetComponent<Image>().color = new Color(1, 1, 1, 0);
+
+		float startTime = Time.time;
+        
+		while ((Time.time - startTime) < changetime)
+        {
+			imageForViewChange.GetComponent<Image>().color = new Color(1, 1, 1,
+		0.0f + 1.0f * ((Time.time - startTime) / changetime)
+																	  );
+            yield return 0;
+        }
+		GetComponent<Image>().sprite = spr;
+		imageForViewChange.SetActive(false);//画像のフェードが終わったらimageForViewと本体を入れ替える
+
+		ItemChangeTo(shown,name);
+
+		cantap = true;
+	}
 
 	public void GetItem (string name)
 	{
-		getFlag = true;
+		
 
 		Sprite spr = Resources.Load ("Image/ItemPanel/" + name, typeof(Sprite)) as Sprite;
 
 		if (spr == null) {
 			Debug.Log (name + "というアイテムはありません");
+			return;
 		}
-
+		getFlag = true;
+		SetIconCanDrag(false);//アイコンをドラッグ出来なくする
 		GameObject newb = Instantiate (buttonItemIcon);
 		newb.name = name;
 		newb.GetComponent<Button> ().image.sprite = spr;
@@ -146,8 +177,6 @@ public class ButtonItemView : MonoBehaviour
 		newb.transform.localScale = Vector3.one;    //親子関係セット直後はサイズがおかしくなるので、ローカルサイズを１にセット
         newb.transform.SetSiblingIndex(transform.GetSiblingIndex() + 1);
 		items.Add (newb);
-
-
 
 		ShowItem (name);
 	}
@@ -175,6 +204,24 @@ public class ButtonItemView : MonoBehaviour
        
     }
 
+	public void ItemChangeTo(string currentname, string name)
+    {
+        Sprite spr = Resources.Load("Image/ItemPanel/" + name, typeof(Sprite)) as Sprite;
+        if (spr == null)
+        {
+            Debug.Log(name + "というアイテムはありませんItemChangeTo");
+            return;
+        }
+
+        GetComponent<Image>().sprite = spr;
+
+        int id;
+        id = items.FindIndex(item => item.name == currentname);
+
+		items[id].name = name;
+		items[id].GetComponent<Image>().sprite = spr;
+    }
+
 	public void IconPosUpdate(){
 		for (int i = 0; i < items.Count; ++i)
         {//アイコンの位置整理
@@ -190,12 +237,16 @@ public class ButtonItemView : MonoBehaviour
         }
 	}
 
+    //--------------------------------------------------------------------
+    //                    input系
+	//--------------------------------------------------------------------
 	public void IconClicked (GameObject obj)
 	{
-
+		if (cantap == false) return;
         if (Time.time - PreviousTapTime < DOUBLETAPTIME)
         {
             PreviousTapTime = Time.time;
+			if (getFlag == true) return;
             ShowItem(obj.name);//ダブルタップされたらその項目を表示
             return;
         }
@@ -230,8 +281,9 @@ public class ButtonItemView : MonoBehaviour
 	}
 
     public void IconDragEnd (GameObject obj){
-
-        if (obj.transform.localPosition.y < (iconPos.y - SIZE_ICON)){//アイコン一つ分より下にドラッグして離した時
+		if (cantap == false) return;
+		if (getFlag == true) return;
+		if (obj.transform.localPosition.y < (iconPos.y - SIZE_ICON)){//アイコンを下にドラッグして離した時
             transform.localPosition = obj.transform.localPosition;
             GetComponent<Image>().sprite = obj.GetComponent<Image>().sprite;
             GetComponent<Image>().enabled = true;
@@ -248,6 +300,27 @@ public class ButtonItemView : MonoBehaviour
                 );
     }
 
+	public void PushButtonDark()
+    {
+		if (cantap == false) return;
+        HideItem();
+    }
+
+    public void PushButtonClose()
+    {
+		if (cantap == false) return;
+        HideItem();
+    }
+
+    public void OnClick()
+    {
+        //ご自由にお使いください
+		if (cantap == false) return;
+        gameManager.GetComponent<GameManager>().ItemViewClicked();
+    }
+	//--------------------------------------------------------------------
+    //                    子ルーチン系
+    //--------------------------------------------------------------------
 
 
     private IEnumerator MovePos (GameObject obj , Vector3 finishpos){//イージングで位置を移動する
@@ -275,17 +348,10 @@ public class ButtonItemView : MonoBehaviour
             yield return 0;
         }
         obj.GetComponent<RectTransform>().sizeDelta = startSize + changeSize;
-
-        if (isShowing && (int)GetComponent<RectTransform>().sizeDelta.x == (int)SIZE_VIEW)
-        {
-            buttonClose.GetComponent<Image>().enabled = true; //ビューが最大化されたら閉じるボタン表示
-        }
     }
 
 	private IEnumerator GetEffect ()
 	{
-
-
 		//ButtonItemViewのImageを縮小しながらiconの位置へ移動させてエフェクトとする(もっといい方法あると
 		//思うけどめんどくさい。
 		float startTime = Time.time;    // 開始時間
@@ -333,24 +399,17 @@ public class ButtonItemView : MonoBehaviour
 		this.GetComponent<Image> ().enabled = false;//ButtonItemViewを非表示
 		yield return null;//1フレーム後に再開　これを入れないと１行下で真ん中に戻った時に真ん中に表示される
 		this.transform.localPosition = new Vector3 (0.0f, 0.0f, 0.0f);//ButtonItemViewを元の位置にもどす
-
+        
 		getFlag = false;
+		SetIconCanDrag(true);
 		isShowing = false;
 	}
 
-	public void PushButtonDark ()
-	{
-		HideItem ();
+	public void SetIconCanDrag(bool b){
+		foreach(GameObject obj in items){
+			obj.GetComponent<DragMoveUICamera>().candrag = b;
+		}
 	}
 
-	public void PushButtonClose ()
-	{
-		HideItem ();
-	}
 
-	public void OnClick ()
-	{
-		//ご自由にお使いください
-		gameManager.GetComponent<GameManager>().ItemViewClicked();
-	}
 }
