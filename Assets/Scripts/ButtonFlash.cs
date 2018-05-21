@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public class ButtonFlash : MonoBehaviour
 {
 	public float easingTime = 0.3f;
-
+	public bool canpush = true;
 	private bool IsPress = false;
 	private float red;
 	private float green;
@@ -36,7 +36,7 @@ public class ButtonFlash : MonoBehaviour
 	void Update ()
 	{
 		
-		if (IsPress == false && alpha < 1.0f) {//押されていなかったらalphaを下げて光ってるように見せる
+		if (IsPress == true && alpha < 1.0f) {//押されていなかったらalphaを下げて
 			if ((Time.time - startTime) > easingTime) {//イージングタイムオーバー
 				alpha = 1.0f;
 			} else {
@@ -47,7 +47,7 @@ public class ButtonFlash : MonoBehaviour
 			GetComponent<Image> ().color = new Color (red, green, blue, alpha);
 		}
 
-		if (IsPress == true && alpha > 0.0f) {//押されていたら画像のalphaを上げ
+		if (IsPress == false && alpha > 0.0f) {//押されていたら画像のalphaを上げ光ってるように見せる
 			if ((Time.time - startTime) > easingTime) {//イージングタイムオーバー
 				alpha = 0.0f;
 			} else {
@@ -64,6 +64,7 @@ public class ButtonFlash : MonoBehaviour
 
 	public void PointerDown ()
 	{
+		if (canpush == false) return;
 		IsPress = true;
 		startTime = Time.time;
 		valueA = GetComponent<Image> ().color.a;
@@ -71,6 +72,7 @@ public class ButtonFlash : MonoBehaviour
 
 	public void PointerUp ()
 	{
+		if (canpush == false) return;
 		IsPress = false;
 		startTime = Time.time;
 		valueB = GetComponent<Image> ().color.a;

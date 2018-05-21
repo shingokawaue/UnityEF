@@ -21,16 +21,25 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 	//次流すBGM名、SE名
 	private string _nextBGMName;
 	private string _nextSEName;
-
+    
+	private bool overRapSE = true;//重ねて鳴らすかどうか。通常はtrueでPlaySEdontOverRapメソッドを使うときだけfalseにする
 	//BGMをフェードアウト中か
 	private bool _isFadeOut = false;
 
 	//BGM用、SE用に分けてオーディオソースを持つ
 	public AudioSource AttachBGMSource, AttachSESource;
 
+	private class AudioClipWithVolume{//個別にボリュームを調整するためにvolumeを持つクラス作る（他にいい方法あるかもしらん
+		public AudioClip audioClip;
+		public float volume = 1.0f;
+		public AudioClipWithVolume(AudioClip ac){
+			audioClip = ac;
+		}
+	}
+    
 	//全Audioを保持
-	private Dictionary<string, AudioClip> _bgmDic, _seDic;
-
+	private Dictionary<string, AudioClipWithVolume>  _seDic;
+	private Dictionary<string, AudioClip> _bgmDic;
 	//=================================================================================
 	//初期化
 	//=================================================================================
@@ -44,11 +53,11 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 
 		DontDestroyOnLoad (this.gameObject);
 		//ここまでシングルトンパターン
-
+        
 
 		//リソースフォルダから全SE&BGMのファイルを読み込みセット
 		_bgmDic = new Dictionary<string, AudioClip> ();
-		_seDic = new Dictionary<string, AudioClip> ();
+		_seDic = new Dictionary<string, AudioClipWithVolume> ();
 
 		object[] bgmList = Resources.LoadAll ("BGM");
 		object[] seList = Resources.LoadAll ("SE");
@@ -56,8 +65,10 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 		foreach (AudioClip bgm in bgmList) {
 			_bgmDic [bgm.name] = bgm;
 		}
+
+
 		foreach (AudioClip se in seList) {
-			_seDic [se.name] = se;
+			_seDic[se.name] = new AudioClipWithVolume(se);
 		}
 
 
@@ -83,14 +94,46 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 			Debug.Log (seName + "という名前のSEがありません");
 			return;
 		}
-
 		_nextSEName = seName;
+		overRapSE = true;
 		Invoke ("DelayPlaySE", delay);
 	}
 
+	public void PlaySEdontOverRap(string seName, float delay = 0.0f)
+    {
+        if (!_seDic.ContainsKey(seName))
+        {
+            Debug.Log(seName + "という名前のSEがありません");
+            return;
+        }
+        _nextSEName = seName;
+		overRapSE = false;
+        Invoke("DelayPlaySE", delay);
+    }
+    
 	private void DelayPlaySE ()
 	{
-		AttachSESource.PlayOneShot (_seDic [_nextSEName] as AudioClip);
+		if (AttachSESource.isPlaying == false || overRapSE == true)
+		{
+			//float temporaryShelterOfVolume = AttachSESource.volume;
+			//AttachSESource.volume = temporaryShelterOfVolume;//ボリュームを戻す
+			AttachSESource.volume = PlayerPrefs.GetFloat("SE_VOLUME_KEY", 0.8f);
+			AttachSESource.volume = AttachSESource.volume * _seDic[_nextSEName].volume;//個別に設定されたボリュームを反映
+			AttachSESource.PlayOneShot(_seDic[_nextSEName].audioClip);
+		}
+	}
+
+	public void SetSEVolume(string seName ,float volume){
+		if (!_seDic.ContainsKey(seName))
+        {
+            Debug.Log(seName + "という名前のSEがありません");
+            return;
+        }
+		if (volume < 0 || volume > 1){
+			Debug.Log(seName + "volumeの値が不正です");
+            return;
+		}
+		_seDic[seName].volume = volume;
 	}
 
 	//=================================================================================

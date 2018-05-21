@@ -361,20 +361,18 @@ public class ButtonItemView : MonoBehaviour
 		Vector3 moveDistance = (iconPos - startPos);
 		float easingSize;
 
-
-		Vector3[] startPosIcon = new Vector3[items.Count];//iconのStartPos
-		for (int i = 0; i < (items.Count - 1); ++i) {//既存のicon(末尾以外のアイコン)のStartPos設定
-			startPosIcon [i] = items [i].transform.localPosition;
-		}
-		Vector3 moveDistanceIcon = new Vector3 (-(SIZE_ICON + ICONMARGIN), 0.0f, 0.0f);
+  		for (int i = 0; i < items.Count - 1; ++i)
+        {//既存のアイコンの位置整理
+            if ((int)items[i].transform.localPosition.x != (int)(iconPos.x + (SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1))))
+            {
+                StartCoroutine(
+                    MovePos(items[i], new Vector3(iconPos.x + -(SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1)), iconPos.y, iconPos.z))
+                );
+            }
+        }
 
 		GetComponent<SmoothlyMover> ().begin ();
 		while ((Time.time - startTime) < duration) {
-			
-			for (int i = 0; i < (items.Count - 1); ++i) {//既存のアイコン(末尾以外のアイコン)を左へずらす
-				items [i].transform.localPosition = 
-					startPosIcon [i] + moveDistanceIcon * animCurve.Evaluate ((Time.time - startTime) / duration);			
-			}
 
 			//サイズのイージング
 			easingSize = startSize + changeSize * animCurve.Evaluate ((Time.time - startTime) / duration);
@@ -388,9 +386,6 @@ public class ButtonItemView : MonoBehaviour
 		}
 
 		GetComponent<SmoothlyMover> ().end ();
-		for (int i = 0; i < (items.Count - 1); ++i) {//既存iconのイージング完遂
-			items [i].transform.localPosition = startPosIcon [i] + moveDistanceIcon;
-		}
 			
 		items [items.Count - 1].GetComponent<Button> ().image.enabled = true;//icon表示
 		//items [items.Count - 1].GetComponent<Image> ().enabled = true;
