@@ -17,42 +17,55 @@ public class ButtonItemView : MonoBehaviour
 	//プレハブからアタッチ
 	public bool cantap = true;
 
-    //適当な画像の入ってないImageをアタッチ
+	//適当な画像の入ってないImageをアタッチ
 	public float duration = 0.5f;
-    
-	public const float SIZE_VIEW = 800.0f;
+	public float DOUBLETAPTIME = 0.30f;
 
+	private const float SIZE_VIEW = 800.0f;
+	private const float SIZE_ICON = 144.0f;
+	private const float ICONMARGIN = 4.0f;
+	private float buttonSize;
+	private const float BUTTONMARGIN = 40.0f;
 
-	public const float SIZE_ICON = 144.0f;
-    public const float ICONMARGIN = 4.0f;
-
-    public float DOUBLETAPTIME = 0.30f;
-    private float PreviousTapTime;//ダブルタップ判定用
-	//ボタンの大きさと合わせる
+	private float PreviousTapTime;//ダブルタップ判定用
+								  //ボタンの大きさと合わせる
 	public GameObject imageFlame;//子として作っておきアタッチ
 	public GameObject imageForViewChange;//子として作っておきアタッチ
 	public GameObject buttonClose;//プレハブをアタッチ、Constantiate
 	public GameObject buttonDark;//プレハブをアタッチ、Constantiate
-	//public Button[] icons;
-	//アイテム個数分の要素があって、あらかじめシーンにボタンを作ってアタッチ。アイテムを手に入れたらImageを設定する
+								 //public Button[] icons;
+								 //アイテム個数分の要素があって、あらかじめシーンにボタンを作ってアタッチ。アイテムを手に入れたらImageを設定する
 
-	private List<GameObject> items = new List<GameObject> ();
-	public AnimationCurve animCurve = AnimationCurve.Linear (0, 0, 1, 1);
+	private List<GameObject> items = new List<GameObject>();
+	public AnimationCurve animCurve = AnimationCurve.Linear(0, 0, 1, 1);
 	//アイテムゲットエフェクトのイージング用
 
-	private Vector3 iconPos = new Vector3 (480.0f, 570.0f, 0.0f);
+	private Vector3 iconPos = new Vector3(480.0f, 570.0f, 0.0f);
 	//アイコンの追加される位置
 	private bool getFlag;
 	public string selected = "";
-    public string shown = "";//ビューに表示されてるアイテム
+	public string shown = "";//ビューに表示されてるアイテム
 
 
 	private bool getNow;
 	private bool isShowing;
 	//表示しているか
-
-	void Awake ()
+    
+	void Awake()//Startと分けている意味は特にない
 	{
+
+  
+        if (Application.platform == RuntimePlatform.OSXEditor)
+        {
+			Debug.Log("MacOSEditor");
+			buttonSize = 150.0f;
+        }
+		else if (Application.platform == RuntimePlatform.IPhonePlayer)
+        {
+            Debug.Log("iOS");
+			buttonSize = Screen.dpi / 5;
+        }
+
 		buttonDark = Instantiate (buttonDark);
 		buttonDark.GetComponent<Button> ().onClick.AddListener (() => PushButtonDark ());
 		buttonDark.transform.SetParent (this.transform.root.gameObject.transform);
@@ -60,20 +73,24 @@ public class ButtonItemView : MonoBehaviour
 		buttonDark.transform.localPosition = Vector3.zero;
 		buttonDark.transform.SetSiblingIndex (transform.GetSiblingIndex());
 
+		buttonClose = Instantiate(buttonClose);
+        buttonClose.transform.SetParent(this.transform.root.gameObject.transform);
+        buttonClose.transform.localScale = Vector3.one;
+		buttonClose.transform.localPosition = new Vector3(SIZE_VIEW / 2 - buttonSize / 2 - BUTTONMARGIN ,
+		                                                  SIZE_VIEW / 2 - buttonSize / 2 - BUTTONMARGIN);
+        buttonClose.GetComponent<Button>().onClick.AddListener(() => PushButtonClose());
+		buttonClose.GetComponent<RectTransform>().sizeDelta = new Vector2(buttonSize, buttonSize);
 	}
 	// Use this for initialization
 	void Start ()
 	{
+		
 		gameManager = GameObject.Find("GameManager");
 		getFlag = false;
 		isShowing = false;
 		GetComponent<RectTransform> ().sizeDelta = new Vector2 (SIZE_VIEW, SIZE_VIEW);
 		imageForViewChange.GetComponent<RectTransform>().sizeDelta = new Vector2(SIZE_VIEW, SIZE_VIEW);
-		buttonClose = Instantiate (buttonClose);
-		buttonClose.transform.SetParent (this.transform.root.gameObject.transform);
-		buttonClose.transform.localScale = Vector3.one;
-		buttonClose.transform.localPosition = new Vector3 (SIZE_VIEW / 2.0f - 50.0f, SIZE_VIEW / 2.0f - 50.0f);
-		buttonClose.GetComponent<Button> ().onClick.AddListener (() => PushButtonClose ());
+
 		GetComponent<Button> ().transition = Selectable.Transition.None;//大きいビューは押したエフェクトなし
 	}
 	

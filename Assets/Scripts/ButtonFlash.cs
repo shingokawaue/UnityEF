@@ -12,9 +12,6 @@ public class ButtonFlash : MonoBehaviour
 	public float easingTime = 0.3f;
 	public bool canpush = true;
 	private bool IsPress = false;
-	private float red;
-	private float green;
-	private float blue;
 	private float alpha = 0.0f;
 
 	private float valueA = 0.0f;
@@ -27,16 +24,14 @@ public class ButtonFlash : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-		red = GetComponent<Image> ().color.r;
-		green = GetComponent<Image> ().color.g;
-		blue = GetComponent<Image> ().color.b;
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		
-		if (IsPress == true && alpha < 1.0f) {//押されていなかったらalphaを下げて
+
+
+		if (IsPress == true && alpha < 1.0f) {//押されていたら画像のalphaを上げ光ってるように見せる
 			if ((Time.time - startTime) > easingTime) {//イージングタイムオーバー
 				alpha = 1.0f;
 			} else {
@@ -44,10 +39,10 @@ public class ButtonFlash : MonoBehaviour
 					EasingLerps.EasingInOutType.EaseOut,
 					(Time.time - startTime) / easingTime, valueA, 1.0f);
 			}
-			GetComponent<Image> ().color = new Color (red, green, blue, alpha);
+			GetComponent<Image> ().color = new Color (1, 1, 1, alpha);
 		}
 
-		if (IsPress == false && alpha > 0.0f) {//押されていたら画像のalphaを上げ光ってるように見せる
+		if (IsPress == false && alpha > 0.0f) {//押されていなかったらalphaを下げて
 			if ((Time.time - startTime) > easingTime) {//イージングタイムオーバー
 				alpha = 0.0f;
 			} else {
@@ -55,7 +50,7 @@ public class ButtonFlash : MonoBehaviour
 					EasingLerps.EasingInOutType.EaseIn,
 					(Time.time - startTime) / easingTime, 0.0f, valueB);
 			}
-			GetComponent<Image> ().color = new Color (red, green, blue, alpha);
+			GetComponent<Image> ().color = new Color (1, 1, 1, alpha);
 		}
 
 	}
@@ -72,9 +67,9 @@ public class ButtonFlash : MonoBehaviour
 
 	public void PointerUp ()
 	{
-		if (canpush == false) return;
 		IsPress = false;
 		startTime = Time.time;
 		valueB = GetComponent<Image> ().color.a;
 	}
+ 
 }

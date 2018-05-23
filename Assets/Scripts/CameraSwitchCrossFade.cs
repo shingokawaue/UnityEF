@@ -23,6 +23,7 @@ public class CameraSwitchCrossFade : MonoBehaviour
 	//フェードにかける時間
 	public GameObject[] cameras;
 	public GameObject[] canvases;
+	public GameObject eventSystem;
 
 
 	public int selectedCamera = 0;
@@ -31,18 +32,18 @@ public class CameraSwitchCrossFade : MonoBehaviour
 
 
 	// Use this for initialization
-	void Start ()
+	void Start()
 	{
-		
-	}
-	
-	// Update is called once per frame
-	void Update ()
-	{
-		
+
 	}
 
-	public void Initialize ()
+	// Update is called once per frame
+	void Update()
+	{
+
+	}
+
+	public void Initialize()
 	{
 		for (int i = 0; i < cameraAndCanvasNum; ++i)
 		{
@@ -51,19 +52,21 @@ public class CameraSwitchCrossFade : MonoBehaviour
 				cameras[i].GetComponent<Camera>().enabled = true;
 				//cameras[i].SetActive(true);
 
-				cameras [i].GetComponent<Camera> ().depth = 0;
-				cameras [i].GetComponent<Physics2DRaycaster> ().enabled = true;
+				cameras[i].GetComponent<Camera>().depth = 0;
+				cameras[i].GetComponent<Physics2DRaycaster>().enabled = true;
 
-				canvases [i].GetComponent<Canvas> ().sortingOrder = 1;
-				canvases [i].GetComponent<CanvasGroup> ().interactable = true;
-				canvases [i].GetComponent<CanvasGroup> ().alpha = 1.0f;
-			} else {
+				canvases[i].GetComponent<Canvas>().sortingOrder = 1;
+				canvases[i].GetComponent<CanvasGroup>().interactable = true;
+				canvases[i].GetComponent<CanvasGroup>().alpha = 1.0f;
+			}
+			else
+			{
 				canvases[i].GetComponent<CanvasGroup>().interactable = false;
-                canvases[i].GetComponent<CanvasGroup>().alpha = 0.0f;
-				cameras [i].GetComponent<Camera> ().enabled = false;
+				canvases[i].GetComponent<CanvasGroup>().alpha = 0.0f;
+				cameras[i].GetComponent<Camera>().enabled = false;
 
-				cameras [i].GetComponent<Camera> ().depth = -1;
-				cameras [i].GetComponent<Physics2DRaycaster> ().enabled = false;
+				cameras[i].GetComponent<Camera>().depth = -1;
+				cameras[i].GetComponent<Physics2DRaycaster>().enabled = false;
 				//cameras[i].SetActive(false);
 
 
@@ -72,39 +75,43 @@ public class CameraSwitchCrossFade : MonoBehaviour
 
 	}
 
-	public void SwitchCamera (int id)
+	public void SwitchCamera(int id)
 	{
 		if (id == selectedCamera)
 			return;
 
-		StartCoroutine (FadeOut (selectedCamera));
-		StartCoroutine (FadeIn (id));
+		StartCoroutine(FadeOut(selectedCamera));
+		StartCoroutine(FadeIn(id));
 
 	}
 
-	private IEnumerator FadeOut (int id)
+	private IEnumerator FadeOut(int id)
 	{
+		
+			eventSystem.GetComponent<EventSystem>().enabled = false;
 		float startTime = Time.time;
-		canvases [id].GetComponent<CanvasGroup> ().interactable = false;
+		canvases[id].GetComponent<CanvasGroup>().interactable = false;
 		canvases[id].GetComponent<CanvasGroup>().blocksRaycasts = false;
-       
-		while (Time.time - startTime < duration) {
-			canvases [id].GetComponent<CanvasGroup> ().alpha =
-			1.0f - animCurve.Evaluate ((Time.time - startTime) / duration);
-						
+
+		while (Time.time - startTime < duration)
+		{
+			canvases[id].GetComponent<CanvasGroup>().alpha =
+			1.0f - animCurve.Evaluate((Time.time - startTime) / duration);
+
 			yield return null;
 		}
-		canvases [id].GetComponent<CanvasGroup> ().alpha = 0.0f;
+		canvases[id].GetComponent<CanvasGroup>().alpha = 0.0f;
 		canvases[id].GetComponent<Canvas>().sortingOrder = 0;
-		cameras [id].GetComponent<Camera> ().enabled = false;
+		cameras[id].GetComponent<Camera>().enabled = false;
 
-		cameras [id].GetComponent<Physics2DRaycaster> ().enabled = false;
-		cameras [id].GetComponent<Camera> ().depth = -1;
+		cameras[id].GetComponent<Physics2DRaycaster>().enabled = false;
+		cameras[id].GetComponent<Camera>().depth = -1;
 
 		//cameras[id].SetActive(false);
 		//canvases[id].SetActive(false);
+  
+			eventSystem.GetComponent<EventSystem>().enabled = true;
 	}
-
 	private IEnumerator FadeIn (int id)
 	{
 		float startTime = Time.time;

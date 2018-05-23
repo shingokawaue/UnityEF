@@ -113,9 +113,12 @@
     <Compile Include="Assets\Scripts\ButtonItemView.cs" />
     <Compile Include="Assets\Scripts\ButtonWithNumber.cs" />
     <Compile Include="Assets\Scripts\CameraSwitchCrossFade.cs" />
+    <Compile Include="Assets\Scripts\Common.cs" />
+    <Compile Include="Assets\Scripts\DisplayMessage.cs" />
     <Compile Include="Assets\Scripts\DoubleClick.cs" />
     <Compile Include="Assets\Scripts\DragMoveUICamera.cs" />
     <Compile Include="Assets\Scripts\EasingLerps.cs" />
+    <Compile Include="Assets\Scripts\EventSystemController.cs" />
     <Compile Include="Assets\Scripts\Fade.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\ItemGetButton.cs" />

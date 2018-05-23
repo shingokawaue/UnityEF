@@ -29,12 +29,8 @@ public class ButtonDirectionManager : MonoBehaviour
 
 
 	private bool IsPress = false;
-
-	private float red;
-	private float green;
-	private float blue;
+ 
 	private float alpha = 0.0f;
-
 	private float valueA = 0.0f;
 	//イージング
 	private float valueB = 1.0f;
@@ -45,9 +41,6 @@ public class ButtonDirectionManager : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{		
-		red = GetComponent<Image> ().color.r;
-		green = GetComponent<Image> ().color.g;
-		blue = GetComponent<Image> ().color.b;
 	}
 	
 	// Update is called once per frame
@@ -62,7 +55,7 @@ public class ButtonDirectionManager : MonoBehaviour
 					EasingLerps.EasingInOutType.EaseOut,
 					(Time.time - startTime) / easingTime, valueA, 1.0f);
 			}
-			GetComponent<Image> ().color = new Color (red, green, blue, alpha);
+			GetComponent<Image> ().color = new Color (1, 1, 1, alpha);
 		}
 
 		if (IsPress == false && alpha > 0.0f) {//押されていなかったらalphaを下げる
@@ -73,7 +66,7 @@ public class ButtonDirectionManager : MonoBehaviour
 					EasingLerps.EasingInOutType.EaseIn,
 					(Time.time - startTime) / easingTime, 0.0f, valueB);
 			}
-			GetComponent<Image> ().color = new Color (red, green, blue, alpha);
+			GetComponent<Image> ().color = new Color (1, 1, 1, alpha);
 		}
 
 	}

@@ -5,9 +5,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
+using UnityEngine.EventSystems;
 
 using UnityEngine.PostProcessing;
 using UnityEngine.Video;
+
+using Common;//自作定数宣言クラス
 //delegate用
 
 public class GameManager : MonoBehaviour
@@ -30,8 +33,6 @@ public class GameManager : MonoBehaviour
 	public const int COLOR_RED = 1;
 	public const int COLOR_BLUE = 2;
 	public const int COLOR_WHITE = 3;
-
-
 
 	//direction
 	public const int DOWN = 0;
@@ -89,6 +90,8 @@ public class GameManager : MonoBehaviour
 	public GameObject subCamera;
 	public GameObject subsubCamera;
 
+	public GameObject eventSystem;
+
 	public GameObject audioManager;
 
 	public GameObject panelWalls;
@@ -128,11 +131,14 @@ public class GameManager : MonoBehaviour
 	public GameObject[] buttonDirection = new GameObject[4];
 	public GameObject[] buttonColors = new GameObject[3];
 	public GameObject[] buttonNumbers = new GameObject[4];
+	public GameObject[] buttonLR = new GameObject[2];
 
 	public GameObject pencilAnimation;
 
 	public GameObject videoPlayerMonkey;
 	public GameObject videoPlayerRedKey;
+	public GameObject videoPlayerCutKey;
+	public GameObject videoPlayerDog;
 
 	public Sprite[] buttonPicture = new Sprite[4];
 	public Sprite hammerPicture;
@@ -158,41 +164,7 @@ public class GameManager : MonoBehaviour
 	List<string> gameFlag = new List<string>();//ゲームフラグ
     //GetXXX UseXXX OpenXXX というstringを追加する
 
-	//soundsClipNo
-    public const string SOUND_DOOROPEN1 = "door-open1";
-    public const string SOUND_DRAWEROPEN1 = "drawer-open1";
-    public const string SOUND_DECISION22 = "decision22";
-    public const string SOUND_DECISION4 = "decision4";
-    public const string SOUND_KEY_IN2 = "key-in2";
-    public const string SOUND_CURSOR7 = "cursor7";
-    public const string SOUND_CURSOR1 = "cursor1";
-    public const string SOUND_SHAKASHAKA = "shakashaka01";
-    public const string SOUND_KEZURI = "kezuri01";
-    public const string SOUND_DUKTWCHIN = "duktwchin";
-    public const string SOUND_KACHAN05 = "kachan05";
-    public const string SOUND_FURNITURECANTOPEN01 = "furnitureCantOpen01";
-    public const string SOUND_FURNITURECANTOPEN02 = "furnitureCantOpen02";
-    public const string SOUND_FURNITURECANTOPEN03 = "furnitureCantOpen03";
-    public const string SOUND_FURNITURECANTOPEN04 = "furnitureCantOpen04";
-    public const string SOUND_DRAWER01 = "drawer01";
-	public const string SOUND_DRAWER04 = "drawer04";
-	public const string SOUND_DRAWER06 = "drawer06";
-	public const string SOUND_DRAWER07 = "drawer07";
-    public const string SOUND_DRAWER08 = "drawer08";
-    public const string SOUND_DRAWER09 = "drawer09";
-	public const string SOUND_DRAWER11 = "drawer11";
 
-    public const string SOUND_DRAWERCLOSE02 = "drawerClose02";
-    public const string SOUND_DRAWERCLOSE05 = "drawerClose05";
-	public const string SOUND_DRAWERCLOSE06 = "drawerClose05";
-	public const string SOUND_DRAWERCLOSE15 = "drawerClose15";
-    public const string SOUND_CANTOPEN01 = "cantOpen01";
-    public const string SOUND_CANTOPEN02 = "cantOpen02";
-    public const string SOUND_CANTOPEN03 = "cantOpen03";
-    public const string SOUND_CANTOPEN04 = "cantOpen04";
-	public const string SOUND_GOTON01 = "goton01";
-	public const string SOUND_PATA01 = "pata01";
-	public const string SOUND_HUWHUWHLLL = "huwhuwhlll";
     //ScreenNo
     enum EScreenNo
     {
@@ -231,7 +203,9 @@ public class GameManager : MonoBehaviour
         SCREEN_ZOOMSTAGE_4X2SHELFDOGGRAFITY,
         SCREEN_ZOOMZOOMSTAGE_DESKRTOPEN,
         SCREEN_ZOOMZOOMSTAGE_DESKRBOPEN,
-
+        SCREEN_ZOOMZOOMSTAGE_DOGSTANDOPEN,
+        SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFBOTTOMOPEN,
+        //26
         SCREEN_NUM
     }
 	//------------------------------------------------------------
@@ -239,9 +213,13 @@ public class GameManager : MonoBehaviour
 	//------------------------------------------------------------
 	void Start ()
 	{
-		//SEの個別のボリューム調整
-        audioManager.GetComponent<AudioManager>().SetSEVolume(SOUND_CURSOR7, 0.5f);
-		audioManager.GetComponent<AudioManager>().SetSEVolume(SOUND_DRAWER04, 0.8f);
+		//SEの個別のボリューム調整 既定値は0.8
+        audioManager.GetComponent<AudioManager>().SetSEIndivisualVolume(Define.SOUND_CURSOR7, 0.3f);
+		audioManager.GetComponent<AudioManager>().SetSEIndivisualVolume(Define.SOUND_DRAWER01, 0.5f);
+		audioManager.GetComponent<AudioManager>().SetSEIndivisualVolume(Define.SOUND_DRAWER04, 0.6f);
+		audioManager.GetComponent<AudioManager>().SetSEIndivisualVolume(Define.SOUND_DRAWER11, 0.5f);
+		audioManager.GetComponent<AudioManager>().SetSEIndivisualVolume(Define.SOUND_DUKTWCHIN, 0.6f);
+
 
 		buttonMessage.SetActive(false);
 		wallNo = WALL_FRONT;
@@ -266,18 +244,20 @@ public class GameManager : MonoBehaviour
 		screen[(int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELFDOGGRAFITY] = new Screen(4500, ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT);
 
         screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOX] = new Screen (-1125, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT);
-		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTTOP] = new Screen (0, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, SOUND_DRAWER01, SOUND_DRAWERCLOSE02);
-		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTMIDDLE] = new Screen (1125, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, SOUND_DRAWER04, SOUND_DRAWERCLOSE02);
+		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTTOP] = new Screen (0, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, Define.SOUND_DRAWER01, Define.SOUND_DRAWERCLOSE02);
+		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTMIDDLE] = new Screen (1125, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, Define.SOUND_DRAWER04, Define.SOUND_DRAWERCLOSE02);
 		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOM] = new Screen (2250, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT);
-		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOMOPEN] = new Screen (3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, SOUND_DRAWER06, SOUND_DRAWERCLOSE06);
+		screen [(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOMOPEN] = new Screen (3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, Define.SOUND_DRAWER06, Define.SOUND_DRAWERCLOSE06);
         screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_HIGHSHELFZOOM] = new Screen(-2250, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_WALLRIGHT);
-		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN] = new Screen(-4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT,SOUND_GOTON01);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN] = new Screen(-4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT,Define.SOUND_GOTON01);
 		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_TRASHBOXINSIDE] = new Screen(-3375, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_TRASHBOX);
 		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY] = new Screen(4500, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF);
         screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEYEYES] = new Screen(5625, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFMONKEY);
-		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFTOPOPEN] = new Screen(-5625, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF, SOUND_DRAWER11, SOUND_DRAWERCLOSE15);
-		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRTOPEN ] = new Screen(-6750,ZOOMSTAGE_ZOOMZOOM,(int)EScreenNo.SCREEN_ZOOMSTAGE_DESKRIGHT,SOUND_DRAWER08, SOUND_DRAWERCLOSE05);
-		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRBOPEN] = new Screen(-7875, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKRIGHT, SOUND_DRAWER06, SOUND_DRAWERCLOSE06);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFTOPOPEN] = new Screen(-5625, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF, Define.SOUND_DRAWER11, Define.SOUND_DRAWERCLOSE15);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRTOPEN ] = new Screen(-6750,ZOOMSTAGE_ZOOMZOOM,(int)EScreenNo.SCREEN_ZOOMSTAGE_DESKRIGHT,Define.SOUND_DRAWER08, Define.SOUND_DRAWERCLOSE05);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRBOPEN] = new Screen(-7875, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKRIGHT, Define.SOUND_DRAWER06, Define.SOUND_DRAWERCLOSE06);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DOGSTANDOPEN] = new Screen(6750, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKBOOKSHELF,Define.SOUND_DRAWER14,Define.SOUND_DRAWERCLOSE19);
+		screen[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFBOTTOMOPEN] = new Screen(7875, ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF,Define.SOUND_FURNITUREDOOROPEN04,Define.SOUND_FURNITUREDOORCLOSE02);
 
 		screen [(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFLEFT] = new Screen (-1125, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
         screen[(int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT] = new Screen(-2250, ZOOMSTAGE_ADD, (int)EScreenNo.SCREEN_ZOOMSTAGE_4X2SHELF);
@@ -330,7 +310,7 @@ public class GameManager : MonoBehaviour
 	public void PushGetItemButton (string name)
 	{
 		buttonItemView.GetComponent<ButtonItemView> ().GetItem (name);
-		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_DECISION4);
+		audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_DECISION4);
 		gameFlag.Add ("Get_" + name);
 	}
 
@@ -338,7 +318,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (gameFlag.Contains ("Get_Chair") == false) {
 			buttonItemView.GetComponent<ButtonItemView> ().GetItem ("Chair");
-			audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_DECISION4);
+			audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_DECISION4);
 			gameFlag.Add ("Get_Chair");
 			imageNoChair.GetComponent<Image> ().enabled = true;
 		}
@@ -361,13 +341,13 @@ public class GameManager : MonoBehaviour
 	public void PushButtonUILeft ()//ズームしてない視点の回転移動（スライド
 	{
 		--lr;
-		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_CURSOR7);
+		audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_CURSOR7);
 	}
 
 	public void PushButtonUIRight ()//ズームしてない視点の回転移動（スライド
 	{
 		++lr;
-		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_CURSOR7);
+		audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_CURSOR7);
 	}
 
 	public void PushButtonUIBack ()
@@ -389,36 +369,87 @@ public class GameManager : MonoBehaviour
 	}
     
 	public void ItemViewClicked(){
+		//鉛筆削る
 		if(buttonItemView.GetComponent<ButtonItemView>().shown == "PencilSharpner"
 		   && buttonItemView.GetComponent<ButtonItemView>().selected == "Pencil"){
 			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Pencil");
 			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("PencilSharpner");
 			buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
-			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_KEZURI);
+			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_KEZURI);
 			buttonItemView.GetComponent<ButtonItemView>().cantap = false;
             StartCoroutine(DelayMethod(1.0f, () =>
             {
-				audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+				audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
 				buttonItemView.GetComponent<ButtonItemView>().GetItem("SharpedPencil");
 				buttonItemView.GetComponent<ButtonItemView>().cantap = true;
             }));
 		}
         
+        //紙に鉛筆で書く
 		if (buttonItemView.GetComponent<ButtonItemView>().shown == "Paper"
 		   && buttonItemView.GetComponent<ButtonItemView>().selected == "SharpedPencil")
 		{
 			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("SharpedPencil");
 			buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
 			pencilAnimation.SetActive(true);
-			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_SHAKASHAKA);
+			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_SHAKASHAKA);
 			StartCoroutine(buttonItemView.GetComponent<ButtonItemView>().ViewItemChangeTo(4.8f, "PaperDraw"));
 
             StartCoroutine(DelayMethod(4.8f, () =>
             {
-                audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+                audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
 				pencilAnimation.SetActive(false);
             }));
 		}
+
+        //CutKey合体
+		if ( 
+		    (buttonItemView.GetComponent<ButtonItemView>().shown == "CutKey1"
+		      && buttonItemView.GetComponent<ButtonItemView>().selected == "CutKey2") 
+		   ||
+		    (buttonItemView.GetComponent<ButtonItemView>().shown == "CutKey2"
+              && buttonItemView.GetComponent<ButtonItemView>().selected == "CutKey1") 
+		   )
+		{
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("CutKey1");
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("CutKey2");
+			buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
+			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+			buttonItemView.GetComponent<ButtonItemView>().GetItem("CutKey");
+		}
+
+        //Flower切る
+		if (
+            buttonItemView.GetComponent<ButtonItemView>().shown == "Flower"
+              && buttonItemView.GetComponent<ButtonItemView>().selected == "Scissors"
+           )
+        {
+			if (gameFlag.Contains("Cut_FlowerYellow")){
+            buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Scissors");
+			}
+			gameFlag.Add("CutFlower");
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Flower");
+            buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
+			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+            buttonItemView.GetComponent<ButtonItemView>().GetItem("CutFlower");
+        }
+
+		//FlowerYellow切る
+        if (
+			buttonItemView.GetComponent<ButtonItemView>().shown == "FlowerYellow"
+              && buttonItemView.GetComponent<ButtonItemView>().selected == "Scissors"
+           )
+        {
+            if (gameFlag.Contains("Cut_Flower"))
+            {
+                buttonItemView.GetComponent<ButtonItemView>().RemoveItem("Scissors");
+            }
+			gameFlag.Add("CutFlowerYellow");
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItem("FlowerYellow");
+            buttonItemView.GetComponent<ButtonItemView>().IconPosUpdate();
+            audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+			buttonItemView.GetComponent<ButtonItemView>().GetItem("CutFlowerYellow");
+        }
 	}
 
 	private void SetMoveButtonFalse(){
@@ -427,9 +458,9 @@ public class GameManager : MonoBehaviour
         buttonUIRight.SetActive(false);
 	}
 
-	//------------------------------------------------------------
+	///------------------------------------------------------------
 	//スクリーン移動（スライド
-	//------------------------------------------------------------
+	///------------------------------------------------------------
 	void WallToRight ()//ズームしてない視点の回転移動（スライド
 	{
 		--lr;
@@ -484,44 +515,54 @@ public class GameManager : MonoBehaviour
 	//------------------------------------------------------------
 	public void MovingScreen (int srNo)
 	{//スライドしない移動　（ズーム変化
-
-		if (screen [screenNo].outSound != "") {//スクリーンを出る時の音
-			audioManager.GetComponent<AudioManager> ().PlaySE (screen [screenNo].outSound);
-		}
-		if (screen [srNo].inSound != "") {//スクリーンに入る時の音
-			audioManager.GetComponent<AudioManager> ().PlaySE (screen [srNo].inSound);
-		}
-
-		switch (screen [srNo].zoomStage) {
-		case ZOOMSTAGE_NON:
-			panelWalls.transform.localPosition = new Vector3 (-(screen [srNo].xLocation), 0.0f, 0.0f);
-			GetComponent<CameraSwitchCrossFade> ().SwitchCamera (CAMERA_MAIN);
-			//0.5秒後に実行する
-			StartCoroutine (DelayMethod (0.4f, () => {
-				mainCamera.GetComponent<PostProcessingBehaviour> ().profile.motionBlur.enabled = true;
-			}));
-			break;
-		case ZOOMSTAGE_ZOOM:
-			panelZooms.transform.localPosition = new Vector3 (-(screen [srNo].xLocation), 0.0f, 0.0f);
-			GetComponent<CameraSwitchCrossFade> ().SwitchCamera (CAMERA_SUB);
-			mainCamera.GetComponent<PostProcessingBehaviour> ().profile.motionBlur.enabled = false;
-			break;
-		case ZOOMSTAGE_ZOOMZOOM:
-			panelZoomZooms.transform.localPosition = new Vector3 (-(screen [srNo].xLocation), 0.0f, 0.0f);
-			GetComponent<CameraSwitchCrossFade> ().SwitchCamera (CAMERA_SUBSUB);
-			mainCamera.GetComponent<PostProcessingBehaviour> ().profile.motionBlur.enabled = false;
-			break;
-		case ZOOMSTAGE_ADD:
-			panelWalls.transform.localPosition = new Vector3 (-(screen [srNo].xLocation), 0.0f, 0.0f);
-			GetComponent<CameraSwitchCrossFade> ().SwitchCamera (CAMERA_MAIN);
-			break;
-		}
-		screenNo = srNo;
-		ClearButtons();
-		UpdateUIButtons ();
+  
+			if (screen[screenNo].outSound != "")
+			{//スクリーンを出る時の音
+				audioManager.GetComponent<AudioManager>().PlaySE(screen[screenNo].outSound);
+			}
+			if (screen[srNo].inSound != "")
+			{//スクリーンに入る時の音
+				audioManager.GetComponent<AudioManager>().PlaySE(screen[srNo].inSound);
+			}
+        
+		MoveScreen(srNo);
+	}
+    
+	public void MovingScreenWithoutSound(int srNo){//MovingScreenに引数を二つつけるとインスペクターから呼び出せなくなるので、このようにした。
+		MoveScreen(srNo);
 	}
 
-
+	private void MoveScreen(int srNo){
+		
+		switch (screen[srNo].zoomStage)
+        {
+            case ZOOMSTAGE_NON:
+                panelWalls.transform.localPosition = new Vector3(-(screen[srNo].xLocation), 0.0f, 0.0f);
+                GetComponent<CameraSwitchCrossFade>().SwitchCamera(CAMERA_MAIN);
+                //0.5秒後に実行する
+                StartCoroutine(DelayMethod(0.4f, () => {
+                    mainCamera.GetComponent<PostProcessingBehaviour>().profile.motionBlur.enabled = true;
+                }));
+                break;
+            case ZOOMSTAGE_ZOOM:
+                panelZooms.transform.localPosition = new Vector3(-(screen[srNo].xLocation), 0.0f, 0.0f);
+                GetComponent<CameraSwitchCrossFade>().SwitchCamera(CAMERA_SUB);
+                mainCamera.GetComponent<PostProcessingBehaviour>().profile.motionBlur.enabled = false;
+                break;
+            case ZOOMSTAGE_ZOOMZOOM:
+                panelZoomZooms.transform.localPosition = new Vector3(-(screen[srNo].xLocation), 0.0f, 0.0f);
+                GetComponent<CameraSwitchCrossFade>().SwitchCamera(CAMERA_SUBSUB);
+                mainCamera.GetComponent<PostProcessingBehaviour>().profile.motionBlur.enabled = false;
+                break;
+            case ZOOMSTAGE_ADD:
+                panelWalls.transform.localPosition = new Vector3(-(screen[srNo].xLocation), 0.0f, 0.0f);
+                GetComponent<CameraSwitchCrossFade>().SwitchCamera(CAMERA_MAIN);
+                break;
+        }
+        screenNo = srNo;
+        ClearButtons();
+        UpdateUIButtons();
+	}
 
 	//------------------------------------------------------------
 	//ボタン押した時
@@ -537,12 +578,13 @@ public class GameManager : MonoBehaviour
 		if (buttonDirection [0].GetComponent<ButtonDirectionManager> ().canpush == false)
 			return;
 
-		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_DECISION22);
+		audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_DECISION22);
 
 		if (buttonDirection [0].GetComponent<ButtonDirectionManager> ().direction == UP &&
 		    buttonDirection [1].GetComponent<ButtonDirectionManager> ().direction == LEFT &&
 		    buttonDirection [2].GetComponent<ButtonDirectionManager> ().direction == DOWN &&
 		    buttonDirection [3].GetComponent<ButtonDirectionManager> ().direction == RIGHT) {
+			eventSystem.GetComponent<EventSystem>().enabled = false;
 			gameFlag.Add ("Open_DirBox");
 			foreach (GameObject btn in buttonDirection) {
 				btn.GetComponent<ButtonDirectionManager> ().canpush = false;
@@ -550,10 +592,11 @@ public class GameManager : MonoBehaviour
 
 			//0.5秒後に実行する
 			StartCoroutine (DelayMethod (0.3f, () => {
-				audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_KEY_IN2);
+				audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_KEY_IN2);
 			}));
 			StartCoroutine (DelayMethod (1.0f, () => {
 				MovingScreen ((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTBOTTOMOPEN);
+				eventSystem.GetComponent<EventSystem>().enabled = true;
 			}));
 		}
 	}
@@ -571,23 +614,24 @@ public class GameManager : MonoBehaviour
 		if (buttonColors [0].GetComponent<ButtonWithNumber> ().canpush == false)
 			return;
 
-		audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_DECISION22);
+		audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_PI03);
 
 		if (buttonColors [0].GetComponent<ButtonWithNumber> ().number == 2 &&
 		    buttonColors [1].GetComponent<ButtonWithNumber> ().number == 1 &&
 		    buttonColors [2].GetComponent<ButtonWithNumber> ().number == 4) {
+			eventSystem.GetComponent<EventSystem>().enabled = false;
 			gameFlag.Add ("Open_StarBox");
-
 			foreach (GameObject btn in buttonColors) {
 				btn.GetComponent<ButtonWithNumber> ().canpush = false;
 			}
 
 			//0.5秒後に実行する
 			StartCoroutine (DelayMethod (0.3f, () => {
-				audioManager.GetComponent<AudioManager> ().PlaySE (SOUND_KEY_IN2);
+				audioManager.GetComponent<AudioManager> ().PlaySE (Define.SOUND_SWITCH04);
 			}));
             StartCoroutine(DelayMethod(1.0f, () => {
 				MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOXOPEN);
+				eventSystem.GetComponent<EventSystem>().enabled = true;
             }));
 		}
 
@@ -599,7 +643,7 @@ public class GameManager : MonoBehaviour
 			MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRTOPEN);
 			return;
 		}
-		audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION22);
+		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION22);
 		if (buttonNumbers[0].GetComponent<ButtonWithNumber>().number == 3 &&
 			buttonNumbers[1].GetComponent<ButtonWithNumber>().number == 7 &&
 			buttonNumbers[2].GetComponent<ButtonWithNumber>().number == 8 &&
@@ -613,7 +657,7 @@ public class GameManager : MonoBehaviour
 				btn.GetComponent<ButtonWithNumber>().canpush = false;
 			}
 			StartCoroutine(DelayMethod(0.3f, () => {
-                audioManager.GetComponent<AudioManager>().PlaySE(SOUND_KEY_IN2);
+                audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_KEY_IN2);
             }));
             StartCoroutine(DelayMethod(1.0f, () => {
                 MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRTOPEN);
@@ -631,7 +675,7 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 
-		audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION22);
+		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION22);
 		for (int i = lrJudge.Length - 1; i > 0; --i)
 		{
 			lrJudge[i] = lrJudge[i - 1];
@@ -646,16 +690,21 @@ public class GameManager : MonoBehaviour
 		   lrJudge[5] == true &&
 		   lrJudge[6] == false)
 		{
-			Cursor.lockState = CursorLockMode.Locked;
+			
+			eventSystem.GetComponent<EventSystem>().enabled = false;
 			gameFlag.Add("Open_LRBox");
 			StartCoroutine(DelayMethod(0.3f, () =>
 			{
-				audioManager.GetComponent<AudioManager>().PlaySE(SOUND_KEY_IN2);
+				foreach (GameObject obj in buttonLR)
+                {
+					obj.GetComponent<ButtonFlash>().canpush = false;
+                }
+				audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_KEY_IN2);
 			}));
 			StartCoroutine(DelayMethod(1.0f, () =>
 			{
 				MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRBOPEN);
-				Cursor.lockState = CursorLockMode.Confined;
+				eventSystem.GetComponent<EventSystem>().enabled = true;
 			}));
 
 		}
@@ -673,7 +722,7 @@ public class GameManager : MonoBehaviour
 	}
 
 	public void Click_AreaDeskLeftBottomCantOpen(){
-		audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(SOUND_CANTOPEN03);
+		audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(Define.SOUND_CANTOPEN02);
 		DisplayMessage("開かない。");
 	}
     
@@ -687,7 +736,7 @@ public class GameManager : MonoBehaviour
 		if (buttonItemView.GetComponent<ButtonItemView>().selected == "Chair") {
             imagePutChair.GetComponent<Image>().enabled = true;
             gameFlag.Add("Use_Chair");
-            audioManager.GetComponent<AudioManager>().PlaySE(SOUND_CURSOR1);
+            audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_CURSOR1);
             buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("Chair");
 		}
 	}
@@ -728,7 +777,7 @@ public class GameManager : MonoBehaviour
 				StartCoroutine(PlayMonkeyVideo());
 				return;
 			}else{
-				audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+				audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
 			}
         }
 
@@ -750,17 +799,17 @@ public class GameManager : MonoBehaviour
 		if (gameFlag.Contains("Open_NumberBox")) {
 			MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRTOPEN);
 		}else{
-			audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(SOUND_CANTOPEN04);
+			audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(Define.SOUND_CANTOPEN04);
             DisplayMessage(1.5f,"開かない。");
 		}
 	}
-
+    
 	public void Click_AreaDeskRB(){
 		if (gameFlag.Contains("Open_LRBox"))
         {
             MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKRBOPEN);
 		}else{
-			audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(SOUND_CANTOPEN03);
+			audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(Define.SOUND_CANTOPEN03);
             DisplayMessage(1.5f,"開かない。");
 		}
 	}
@@ -782,17 +831,37 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-		audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(SOUND_CANTOPEN02);
+		audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(Define.SOUND_FURNITURECANTOPEN02);
 		DisplayMessage(1.5f,"カギがかかっている。");
         //カタカタ鳴らす
 	}
 
+	public void Click_AreaKitchenShelfBottom(){
+		if (gameFlag.Contains("Use_CutKey"))
+        {
+            //MovingScreen((int)EScreenNo.);
+            return;
+        }
+		if (buttonItemView.GetComponent<ButtonItemView>().selected == "CutKey")
+        {
+            gameFlag.Add("Use_CutKey");
+            buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("CutKey");
 
+            StartCoroutine(PlayCutkeyVideo());
+            
+            return;
+        }
+
+        audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(Define.SOUND_FURNITURECANTOPEN04);
+        DisplayMessage(1.5f, "カギがかかっている。");
+        //カタカタ鳴らす
+	}
+ 
 	public void Click_AreaDoor(){
 		if(gameFlag.Contains("Open_Door")){
 			
 		}else{
-        audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(SOUND_DUKTWCHIN);
+        audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(Define.SOUND_DUKTWCHIN);
 			DisplayMessage(1.5f,"カギがかかってる。");
 		}
        
@@ -801,13 +870,13 @@ public class GameManager : MonoBehaviour
 	public void Click_AreaDogStand(){
 		if (buttonItemView.GetComponent<ButtonItemView>().selected == "CubeDog")
 		{
-			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_PATA01);
+			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_PATA01);
 			gameFlag.Add("Use_CubeDog");
 			imageBookShelfDogSet.SetActive(true);
 			imageWallFrontDogSet.SetActive(true);
 			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("CubeDog");
 
-			StartCoroutine(DelayMethod(0.3f, () => { audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4); }));
+			StartCoroutine(DelayMethod(0.3f, () => { audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4); }));
 		}
 
 		if (gameFlag.Contains("Use_CubeDog")){
@@ -818,17 +887,22 @@ public class GameManager : MonoBehaviour
 	}
 
 	public void Click_AreaCubeDog(){
-		if (buttonItemView.GetComponent<ButtonItemView>().selected == "Bone")
+		if (gameFlag.Contains("Use_CubeDog") && buttonItemView.GetComponent<ButtonItemView>().selected == "Bone")
         {
             gameFlag.Add("Use_Bone");
             imageBookShelfDogBoneSet.SetActive(true);
             imageWallFrontDogBoneSet.SetActive(true);
             buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos("Bone");
-			audioManager.GetComponent<AudioManager>().PlaySE(SOUND_DECISION4);
+			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
 
-			StartCoroutine(DelayMethod(0.5f, () => { 
-				audioManager.GetComponent<AudioManager>().PlaySE(SOUND_HUWHUWHLLL); }));
+			StartCoroutine(DelayMethod(0.5f, () => {
+				StartCoroutine(PlayDogVideo());
+			}));
         }
+
+		if (gameFlag.Contains("Played_DogVideo")){
+			MovingScreen((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DOGSTANDOPEN);
+		}
 	}
 
 	//------------------------------------------------------------
@@ -839,18 +913,16 @@ public class GameManager : MonoBehaviour
     {
 		videoPlayerMonkey.SetActive(true);
         SetMoveButtonFalse();
-        Cursor.lockState = CursorLockMode.Locked;
+		eventSystem.GetComponent<EventSystem>().enabled = false;
 		while (videoPlayerMonkey.GetComponent<VideoPlayer>().isPrepared == false){
 			videoPlayerMonkey.GetComponent<VideoPlayer>().Prepare(); yield return null;
 		}
-        //videoPlayerMonkey.SetActive(true);
 		videoPlayerMonkey.GetComponent<VideoPlayer>().Play();
 		while (videoPlayerMonkey.GetComponent<VideoPlayer>().isPlaying == false) yield return null;//再生待ち
 		while (videoPlayerMonkey.GetComponent<VideoPlayer>().isPlaying == true) yield return null;//再生終わり待ち
         UpdateUIButtons();
 		videoPlayerMonkey.GetComponent<VideoPlayer>().Stop();
-        //videoPlayerMonkey.SetActive(false);
-        Cursor.lockState = CursorLockMode.Confined;
+		eventSystem.GetComponent<EventSystem>().enabled = true;
 		videoPlayerMonkey.SetActive(false);
     }
     
@@ -858,23 +930,87 @@ public class GameManager : MonoBehaviour
     {
 		videoPlayerRedKey.SetActive(true);
         SetMoveButtonFalse();
-        Cursor.lockState = CursorLockMode.Locked;
+		eventSystem.GetComponent<EventSystem>().enabled = false;
+		videoPlayerRedKey.GetComponent<VideoPlayer>().Play();
+		videoPlayerRedKey.GetComponent<VideoPlayer>().Pause();
+		videoPlayerRedKey.GetComponent<VideoPlayer>().time = 0;
 		while (videoPlayerRedKey.GetComponent<VideoPlayer>().isPrepared == false){
 			videoPlayerRedKey.GetComponent<VideoPlayer>().Prepare(); yield return null;
 		}
-		//videoPlayerRedKey.SetActive(true);
 		videoPlayerRedKey.GetComponent<VideoPlayer>().Play();
 		while (videoPlayerRedKey.GetComponent<VideoPlayer>().isPlaying == false) yield return null;//再生待ち
 		yield return new WaitForSeconds(1.9f);//1.9秒あたりに音挿入
-		audioManager.GetComponent<AudioManager>().PlaySE(SOUND_KACHAN05);
+		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_KACHAN05);
 		while (videoPlayerRedKey.GetComponent<VideoPlayer>().isPlaying == true) yield return null;//再生終わり待ち
-		yield return new WaitForSeconds(0.5f);//最終フレームでちょい待ち
+		MovingScreenWithoutSound((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFTOPOPEN);
+		yield return new WaitForSeconds(0.3f);
+		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DRAWER11);
+		yield return new WaitForSeconds(0.2f);//最終フレームでちょい待ち
         UpdateUIButtons();
+		eventSystem.GetComponent<EventSystem>().enabled = true;
 		videoPlayerRedKey.GetComponent<VideoPlayer>().Stop();
-		//videoPlayerRedKey.SetActive(false);
-        Cursor.lockState = CursorLockMode.Confined;
 		videoPlayerRedKey.SetActive(false);
+
     }
+
+	private IEnumerator PlayCutkeyVideo()
+    {
+        videoPlayerCutKey.SetActive(true);
+        SetMoveButtonFalse();
+        eventSystem.GetComponent<EventSystem>().enabled = false;
+		videoPlayerCutKey.GetComponent<VideoPlayer>().Play();
+		videoPlayerCutKey.GetComponent<VideoPlayer>().Pause();
+		videoPlayerCutKey.GetComponent<VideoPlayer>().time = 0;
+		while (videoPlayerCutKey.GetComponent<VideoPlayer>().isPrepared == false)//再生準備待ち
+        {
+			videoPlayerCutKey.GetComponent<VideoPlayer>().Prepare(); yield return null;
+        }
+		yield return new WaitForSeconds(1.2f);//１コマ目でしばらく止める
+		videoPlayerCutKey.GetComponent<VideoPlayer>().Play();
+		while (videoPlayerCutKey.GetComponent<VideoPlayer>().isPlaying == false) yield return null;//再生待ち
+        yield return new WaitForSeconds(1.9f);//1.9秒あたりに音挿入
+        audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_KACHAN05);
+		while (videoPlayerCutKey.GetComponent<VideoPlayer>().isPlaying == true) yield return null;//再生終わり待ち
+        MovingScreenWithoutSound((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFBOTTOMOPEN);
+        yield return new WaitForSeconds(0.3f);
+        audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DRAWER11);
+        yield return new WaitForSeconds(0.2f);//最終フレームでちょい待ち
+        UpdateUIButtons();
+        eventSystem.GetComponent<EventSystem>().enabled = true;
+		videoPlayerCutKey.GetComponent<VideoPlayer>().Stop();
+		videoPlayerCutKey.SetActive(false);
+
+    }
+
+	private IEnumerator PlayDogVideo(){
+		videoPlayerDog.SetActive(true);
+        SetMoveButtonFalse();
+		eventSystem.GetComponent<EventSystem>().enabled = false;
+        
+		videoPlayerDog.GetComponent<VideoPlayer>().Play();
+		videoPlayerDog.GetComponent<VideoPlayer>().Pause();//1コマ目で止める
+		videoPlayerDog.GetComponent<VideoPlayer>().time = 0;
+		while (videoPlayerDog.GetComponent<VideoPlayer>().isPrepared == false)//再生準備待ち
+        {
+            videoPlayerDog.GetComponent<VideoPlayer>().Prepare(); yield return null;
+        }
+		yield return new WaitForSeconds(0.6f);
+		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_HUWHUWHLLL); 
+		yield return new WaitForSeconds(0.8f);//
+		videoPlayerDog.GetComponent<VideoPlayer>().Play();
+		yield return new WaitForSeconds(0.1f);
+		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DRAWER14);
+		while (videoPlayerDog.GetComponent<VideoPlayer>().isPlaying == false) yield return null;//再生待ち
+		while (videoPlayerDog.GetComponent<VideoPlayer>().isPlaying == true) yield return null;//再生終わり待ち
+		MovingScreenWithoutSound((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DOGSTANDOPEN);
+		yield return new WaitForSeconds(0.4f);//最終フレームでちょい待ち
+
+		UpdateUIButtons();
+		eventSystem.GetComponent<EventSystem>().enabled = true;
+		videoPlayerDog.GetComponent<VideoPlayer>().Stop();
+		videoPlayerDog.SetActive(false);
+		gameFlag.Add("Played_DogVideo");
+	}
 	//------------------------------------------------------------
 	//その他
 	//------------------------------------------------------------

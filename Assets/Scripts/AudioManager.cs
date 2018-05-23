@@ -13,6 +13,7 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 	private const float BGM_VOLUME_DEFULT = 1.0f;
 	private const float SE_VOLUME_DEFULT = 1.0f;
 
+	private const float SE_INDIVISUAL_VOLUME_DEFULT = 0.8f;
 	//BGMがフェードするのにかかる時間
 	public const float BGM_FADE_SPEED_RATE_HIGH = 0.9f;
 	public const float BGM_FADE_SPEED_RATE_LOW = 0.3f;
@@ -31,7 +32,7 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 
 	private class AudioClipWithVolume{//個別にボリュームを調整するためにvolumeを持つクラス作る（他にいい方法あるかもしらん
 		public AudioClip audioClip;
-		public float volume = 1.0f;
+		public float volume = SE_INDIVISUAL_VOLUME_DEFULT;
 		public AudioClipWithVolume(AudioClip ac){
 			audioClip = ac;
 		}
@@ -123,7 +124,7 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 		}
 	}
 
-	public void SetSEVolume(string seName ,float volume){
+	public void SetSEIndivisualVolume(string seName ,float volume){
 		if (!_seDic.ContainsKey(seName))
         {
             Debug.Log(seName + "という名前のSEがありません");
