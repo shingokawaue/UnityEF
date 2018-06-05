@@ -13,6 +13,10 @@ public class ButtonWithNumber : MonoBehaviour
 	public bool canpush = true;
 
 	private GameObject text;
+
+	public GameObject Text{
+		get { return text; }
+	}
 	//子
 
 	// Use this for initialization

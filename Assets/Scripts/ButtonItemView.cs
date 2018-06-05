@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using UnityEngine.EventSystems;
+using System;
+using Common;
 /// <summary>
 /// Button item view UIとして画面の手前で使う感じです
 /// buttonDarkとbuttonCloseはPrefabに置いておく
@@ -11,61 +13,66 @@ using UnityEngine.EventSystems;
 /// </summary>
 public class ButtonItemView : MonoBehaviour
 {
-	private GameObject gameManager;//Startメソッドで初期化
-
+	#region//宣言など
+	GameObject gameManager, inputManager , valueShareManager;//Startメソッドで初期化
 	public GameObject buttonItemIcon;
 	//プレハブからアタッチ
 	public bool cantap = true;
 
 	//適当な画像の入ってないImageをアタッチ
 	public float duration = 0.5f;
-	public float DOUBLETAPTIME = 0.30f;
-
-	private const float SIZE_VIEW = 800.0f;
-	private const float SIZE_ICON = 144.0f;
-	private const float ICONMARGIN = 4.0f;
 	private float buttonSize;
 	private const float BUTTONMARGIN = 40.0f;
-
+	float itemIconSize;
 	private float PreviousTapTime;//ダブルタップ判定用
 								  //ボタンの大きさと合わせる
-	public GameObject imageFlame;//子として作っておきアタッチ
+	public GameObject imageFlame;//ヒエラルキーに子として作っておきアタッチ
 	public GameObject imageForViewChange;//子として作っておきアタッチ
-	public GameObject buttonClose;//プレハブをアタッチ、Constantiate
-	public GameObject buttonDark;//プレハブをアタッチ、Constantiate
-								 //public Button[] icons;
-								 //アイテム個数分の要素があって、あらかじめシーンにボタンを作ってアタッチ。アイテムを手に入れたらImageを設定する
+	public GameObject buttonClose;//プレハブからInstantiate
+	public GameObject buttonDark;//プレハブから、Instantiate
+	public GameObject imageBlackTop;//プレハブからImageBlackをアタッチ、Instantiate
+	public GameObject imageBlackBottom;//プレハブからImageBlackをアタッチ、Instantiate
 
-	private List<GameObject> items = new List<GameObject>();
+	public GameObject iconScrollBar;//ヒエラルキーからアタッチ
+
+	List<GameObject> items = new List<GameObject>();
+	List<string> itemsString = new List<string>();//save用
+
 	public AnimationCurve animCurve = AnimationCurve.Linear(0, 0, 1, 1);
 	//アイテムゲットエフェクトのイージング用
 
-	private Vector3 iconPos = new Vector3(480.0f, 570.0f, 0.0f);
+	Vector3 iconInitialPos;
+	float iconInitialPosX;
+	float iconInitialPosY;
 	//アイコンの追加される位置
-	private bool getFlag;
+	bool getFlag;
 	public string selected = "";
 	public string shown = "";//ビューに表示されてるアイテム
 
+	float scrollPos = 0.0f;//アイコンスクロール用、localpositionのxに足して使う。
+	bool getNow;
+	bool isShowing;//表示しているか
 
-	private bool getNow;
-	private bool isShowing;
-	//表示しているか
-    
+	float barWidth = 0.0f;
+	float barPos = 0.0f;//左端0.0f 右端1.0f
+	#endregion
+
+
+
 	void Awake()//Startと分けている意味は特にない
 	{
-
-  
-        if (Application.platform == RuntimePlatform.OSXEditor)
+		if (Application.platform == RuntimePlatform.OSXEditor)
         {
-			Debug.Log("MacOSEditor");
-			buttonSize = 150.0f;
+            Debug.Log("MacOSEditor");
+            buttonSize = 150.0f;
         }
-		else if (Application.platform == RuntimePlatform.IPhonePlayer)
+        else if (Application.platform == RuntimePlatform.IPhonePlayer)
         {
             Debug.Log("iOS");
-			buttonSize = Screen.dpi / 5;
+            buttonSize = Screen.dpi / 5;
         }
 
+  
 		buttonDark = Instantiate (buttonDark);
 		buttonDark.GetComponent<Button> ().onClick.AddListener (() => PushButtonDark ());
 		buttonDark.transform.SetParent (this.transform.root.gameObject.transform);
@@ -76,33 +83,105 @@ public class ButtonItemView : MonoBehaviour
 		buttonClose = Instantiate(buttonClose);
         buttonClose.transform.SetParent(this.transform.root.gameObject.transform);
         buttonClose.transform.localScale = Vector3.one;
-		buttonClose.transform.localPosition = new Vector3(SIZE_VIEW / 2 - buttonSize / 2 - BUTTONMARGIN ,
-		                                                  SIZE_VIEW / 2 - buttonSize / 2 - BUTTONMARGIN);
+		buttonClose.transform.localPosition = new Vector3(Define.ITEMVIEW_IDEALSIZE / 2 - buttonSize / 2 - BUTTONMARGIN ,
+		                                                  Define.ITEMVIEW_IDEALSIZE / 2 - buttonSize / 2 - BUTTONMARGIN);
         buttonClose.GetComponent<Button>().onClick.AddListener(() => PushButtonClose());
 		buttonClose.GetComponent<RectTransform>().sizeDelta = new Vector2(buttonSize, buttonSize);
+  
+		gameManager = GameObject.FindWithTag("GameManager");
+        inputManager = GameObject.FindWithTag("InputManager");
+        valueShareManager = GameObject.FindWithTag("ValueShareManager");
+
+        itemIconSize = valueShareManager.GetComponent<ValueShareManager>().ItemIconSize;
+        iconInitialPosX = (Define.CANBUS_WIDTH / 2) - (itemIconSize / 2) - Define.ITEMICON_MARGIN;
+        iconInitialPosY = (Define.CANBUS_HEIGHT / 2);
+        iconInitialPos = new Vector3(iconInitialPosX, iconInitialPosY);
+
 	}
 	// Use this for initialization
 	void Start ()
 	{
 		
-		gameManager = GameObject.Find("GameManager");
+		iconScrollBar.GetComponent<HorizontalScrrolBar>().OnScrollBarMoved += OnScrollBarMoved;//
+		iconScrollBar.transform.localPosition = new Vector3(0.0f,iconInitialPosY - itemIconSize /2 
+		                                                    - iconScrollBar.GetComponent<RectTransform>().sizeDelta.y / 2);
+
+		imageBlackTop = Instantiate(imageBlackTop);
+        imageBlackTop.transform.SetParent(this.transform.root.gameObject.transform);
+        imageBlackTop.transform.localScale = Vector3.one;
+		imageBlackTop.transform.localPosition = new Vector3(0.0f, (Define.CANBUS_HEIGHT / 2) - (valueShareManager.GetComponent<ValueShareManager>().ScreenSlidePixel / 2)
+		                                                 + (valueShareManager.GetComponent<ValueShareManager>().ScreenSurplusHeightPixel / 4) );
+		imageBlackTop.GetComponent<RectTransform>().sizeDelta = new Vector2(Define.CANBUS_WIDTH,
+		                                                                 valueShareManager.GetComponent<ValueShareManager>().ScreenSurplusHeightPixel / 2
+		                                                                 + valueShareManager.GetComponent<ValueShareManager>().ScreenSlidePixel);
+		imageBlackTop.transform.SetSiblingIndex(transform.GetSiblingIndex());
+
+		imageBlackBottom = Instantiate(imageBlackBottom);
+		imageBlackBottom.transform.SetParent(this.transform.root.gameObject.transform);
+		imageBlackBottom.transform.localScale = Vector3.one;
+		imageBlackBottom.transform.localPosition = new Vector3(0.0f, -(Define.CANBUS_HEIGHT / 2) - (valueShareManager.GetComponent<ValueShareManager>().ScreenSlidePixel / 2)
+                                                         - (valueShareManager.GetComponent<ValueShareManager>().ScreenSurplusHeightPixel / 4));
+		imageBlackBottom.GetComponent<RectTransform>().sizeDelta = new Vector2(Define.CANBUS_WIDTH,
+                                                                         valueShareManager.GetComponent<ValueShareManager>().ScreenSurplusHeightPixel / 2
+                                                                         - valueShareManager.GetComponent<ValueShareManager>().ScreenSlidePixel);
+		imageBlackBottom.transform.SetSiblingIndex(transform.GetSiblingIndex());
+
 		getFlag = false;
 		isShowing = false;
-		GetComponent<RectTransform> ().sizeDelta = new Vector2 (SIZE_VIEW, SIZE_VIEW);
-		imageForViewChange.GetComponent<RectTransform>().sizeDelta = new Vector2(SIZE_VIEW, SIZE_VIEW);
+		GetComponent<RectTransform> ().sizeDelta = new Vector2 (Define.ITEMVIEW_IDEALSIZE, Define.ITEMVIEW_IDEALSIZE);
+		imageForViewChange.GetComponent<RectTransform>().sizeDelta = new Vector2(Define.ITEMVIEW_IDEALSIZE, Define.ITEMVIEW_IDEALSIZE);
 
 		GetComponent<Button> ().transition = Selectable.Transition.None;//大きいビューは押したエフェクトなし
+
+
 	}
 	
 	// Update is called once per frame
 	public void Update ()
 	{
   
-        if (isShowing && (int)GetComponent<RectTransform>().sizeDelta.x == (int)SIZE_VIEW)
+        if (isShowing && (int)GetComponent<RectTransform>().sizeDelta.x == (int)Define.ITEMVIEW_IDEALSIZE)
         {
             buttonClose.GetComponent<Image>().enabled = true; //ビューが最大化されたら閉じるボタン表示
         }
+
+		if(Screen.width < items.Count * itemIconSize + (items.Count - 1 ) * Define.ITEMICON_MARGIN){
+			
+
+
+		}else{
+
+
+		}
+
+
 	}
+
+
+
+    //-----------------------------------------------------------------------------------------
+    //                              メンバアクセス
+    //-----------------------------------------------------------------------------------------
+	public bool DoesHave(string name){//引数で指定された名前のアイテムを持ってるかどうかを返す
+		foreach(GameObject obj in items){
+			if(obj.name == name){
+				return true;
+			}
+		}
+		return false;
+	}
+	//-----------------------------------------------------------------------------------------
+    //                              表示系統
+    //-----------------------------------------------------------------------------------------
+    
+	void DisplayBar(){//アイコンが画面からはみ出すとスクロールバーを表示する
+		if( (int)(items.Count * itemIconSize + items.Count * Define.ITEMICON_MARGIN) < Screen.width ){
+			return;
+		}
+		//return (Screen.width / (items.Count * itemIconSize + items.Count * Define.ITEMICON_MARGIN)) * Screen.width;
+	}
+
+
 
 	public void ShowItem (string name)
 	{
@@ -117,7 +196,7 @@ public class ButtonItemView : MonoBehaviour
 		buttonDark.GetComponent<Image> ().enabled = true;
 
 		this.GetComponent<Image> ().sprite = foundItem.GetComponent<Button> ().image.sprite;
-		this.GetComponent<RectTransform> ().sizeDelta = new Vector2 (SIZE_VIEW, SIZE_VIEW);
+		this.GetComponent<RectTransform> ().sizeDelta = new Vector2 (Define.ITEMVIEW_IDEALSIZE, Define.ITEMVIEW_IDEALSIZE);
 
 		this.GetComponent<Image> ().enabled = true;
         buttonClose.GetComponent<Image>().enabled = true;
@@ -137,41 +216,48 @@ public class ButtonItemView : MonoBehaviour
 
 	}
     
-	public IEnumerator ViewItemChangeTo(float changetime ,string name){//表示されているビューのアイテムを引数のアイテムに変える
+
+
+   
+
+	//-----------------------------------------------------------------------------------------
+    //                              アイテム所持の操作
+    //-----------------------------------------------------------------------------------------
+	public IEnumerator ViewItemChangeTo(float changetime, string name)
+    {//表示されているビューのアイテムを引数のアイテムに変える
         Sprite spr = Resources.Load("Image/ItemPanel/" + name, typeof(Sprite)) as Sprite;
 
         if (spr == null)
         {
             Debug.Log(name + "というアイテムはありません");
-			yield break;
+            yield break;
         }
-		cantap = false;
+        cantap = false;
 
-		imageForViewChange.SetActive(true);
-		imageForViewChange.GetComponent<Image>().sprite = spr;
-		imageForViewChange.GetComponent<Image>().color = new Color(1, 1, 1, 0);
+        imageForViewChange.SetActive(true);
+        imageForViewChange.GetComponent<Image>().sprite = spr;
+        imageForViewChange.GetComponent<Image>().color = new Color(1, 1, 1, 0);
 
-		float startTime = Time.time;
-        
-		while ((Time.time - startTime) < changetime)
+        float startTime = Time.time;
+
+        while ((Time.time - startTime) < changetime)
         {
-			imageForViewChange.GetComponent<Image>().color = new Color(1, 1, 1,
-		0.0f + 1.0f * ((Time.time - startTime) / changetime)
-																	  );
+            imageForViewChange.GetComponent<Image>().color = new Color(1, 1, 1,
+        0.0f + 1.0f * ((Time.time - startTime) / changetime)
+                                                                      );
             yield return 0;
         }
-		GetComponent<Image>().sprite = spr;
-		imageForViewChange.SetActive(false);//画像のフェードが終わったらimageForViewと本体を入れ替える
+        GetComponent<Image>().sprite = spr;
+        imageForViewChange.SetActive(false);//画像のフェードが終わったらimageForViewと本体を入れ替える
 
-		ItemChangeTo(shown,name);
+        ItemChangeTo(shown, name);
 
-		cantap = true;
-	}
+        cantap = true;
+    }
+
 
 	public void GetItem (string name)
-	{
-		
-
+{
 		Sprite spr = Resources.Load ("Image/ItemPanel/" + name, typeof(Sprite)) as Sprite;
 
 		if (spr == null) {
@@ -179,6 +265,7 @@ public class ButtonItemView : MonoBehaviour
 			return;
 		}
 		getFlag = true;
+		if (iconScrollBar.activeSelf) iconScrollBar.GetComponent<HorizontalScrrolBar>().CanDrag = false;
 		SetIconCanDrag(false);//アイコンをドラッグ出来なくする
 		GameObject newb = Instantiate (buttonItemIcon);
 		newb.name = name;
@@ -189,12 +276,16 @@ public class ButtonItemView : MonoBehaviour
         EventTrigger.Entry found = newb.GetComponent<EventTrigger>().triggers.Find(x => x.eventID == EventTriggerType.EndDrag);
         found.callback.AddListener( (BaseEventData) => IconDragEnd(newb) );
 
-		newb.GetComponent<RectTransform> ().sizeDelta = new Vector2 (SIZE_ICON, SIZE_ICON);
+		newb.GetComponent<RectTransform> ().sizeDelta = new Vector2 (itemIconSize, itemIconSize);
 		newb.transform.SetParent (this.transform.root.gameObject.transform);
 		newb.transform.localScale = Vector3.one;    //親子関係セット直後はサイズがおかしくなるので、ローカルサイズを１にセット
         newb.transform.SetSiblingIndex(transform.GetSiblingIndex() + 1);
 		items.Add (newb);
-
+		itemsString.Add(newb.name);
+		SaveData.Instance.itemList = itemsString;
+        SaveData.Instance.Save();
+        
+		Debug.Log("GetItem:" + name);
 		ShowItem (name);
 	}
 
@@ -205,20 +296,60 @@ public class ButtonItemView : MonoBehaviour
 
     public void RemoveItem(string name)
     {
-        int i;
+        int i,j;
         i = items.FindIndex(item => item.name == name);
         if (i == -1) {
             Debug.Log(name + "というアイテムがないので削除できません");
             return;
         }
+		j = itemsString.FindIndex(items => items == name);
+        
 
         Destroy(items[i]);
         items.RemoveAt(i);
+        itemsString.RemoveAt(j);
+		SaveData.Instance.itemList = itemsString;
+		SaveData.Instance.Save();
+		Debug.Log("RemoveItem " + name);
+		CheckIconWidth();
+		scrollPos = 0.0f;//←０じゃない
         if (selected == name){
             selected = "";
         }
+    }
 
-       
+    /// <summary>
+    /// Applies the save data.
+    /// </summary>
+	public void ApplySaveData()
+    {
+        itemsString = SaveData.Instance.itemList;
+        foreach (GameObject obj in items)
+        {
+            Destroy(obj);
+        }
+        items = new List<GameObject>();
+
+        foreach (string itemname in itemsString)
+        {
+            Sprite spr = Resources.Load("Image/ItemPanel/" + itemname, typeof(Sprite)) as Sprite;
+            GameObject newb = Instantiate(buttonItemIcon);
+            newb.name = itemname;
+            newb.GetComponent<Button>().image.sprite = spr;
+            newb.GetComponent<Button>().onClick.AddListener(() => IconClicked(newb.gameObject));//onClickのイベントリスナー取り付け
+
+            //inspectorで追加したイベントトリガーにコールバックを設定
+            EventTrigger.Entry found = newb.GetComponent<EventTrigger>().triggers.Find(x => x.eventID == EventTriggerType.EndDrag);
+            found.callback.AddListener((BaseEventData) => IconDragEnd(newb));
+
+            newb.GetComponent<RectTransform>().sizeDelta = new Vector2(itemIconSize, itemIconSize);
+            newb.transform.SetParent(this.transform.root.gameObject.transform);
+            newb.transform.localScale = Vector3.one;    //親子関係セット直後はサイズがおかしくなるので、ローカルサイズを１にセット
+            newb.transform.SetSiblingIndex(transform.GetSiblingIndex() + 1);
+			newb.GetComponent<Image>().enabled = true;
+            items.Add(newb);
+        }
+		IconPosUpdate(false);
     }
 
 	public void ItemChangeTo(string currentname, string name)
@@ -239,28 +370,39 @@ public class ButtonItemView : MonoBehaviour
 		items[id].GetComponent<Image>().sprite = spr;
     }
 
-	public void IconPosUpdate(){
-		for (int i = 0; i < items.Count; ++i)
+    /// <summary>
+    /// Update Icons position.
+    /// </summary>
+    /// <param name="usecol">If set to <c>true</c> usecol.</param>
+	public void IconPosUpdate(bool usecol = true){
+		for (int i = 0; i < items.Count; ++i)//整列
         {//アイコンの位置整理
-
-            if ((int)items[i].transform.localPosition.x != (int)(iconPos.x + (SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1))))
+			if (  (int)items[i].transform.localPosition.x != (int)(iconInitialPos.x + (itemIconSize + Define.ITEMICON_MARGIN) * (items.Count - (i + 1)) + scrollPos )  )
             {
-                StartCoroutine(
-                    MovePos(items[i], new Vector3(iconPos.x + -(SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1))
-                                                  , iconPos.y, iconPos.z))
-                );
+				if (usecol)
+				{//ゆっくり
+					StartCoroutine(
+						MovePos(items[i], new Vector3(iconInitialPos.x + -(itemIconSize + Define.ITEMICON_MARGIN) * (items.Count - (i + 1)) + scrollPos
+													  , iconInitialPos.y, iconInitialPos.z))
+					);
+				}else{//即座に
+					items[i].transform.localPosition = new Vector3(iconInitialPos.x + -(itemIconSize + Define.ITEMICON_MARGIN) * (items.Count - (i + 1)) + scrollPos
+					                                               , iconInitialPos.y, iconInitialPos.z);
+				}
             }
-
         }
 	}
 
-    //--------------------------------------------------------------------
-    //                    input系
+
+
 	//--------------------------------------------------------------------
+	//                    input系
+	//--------------------------------------------------------------------
+	#region// input系
 	public void IconClicked (GameObject obj)
 	{
 		if (cantap == false) return;
-        if (Time.time - PreviousTapTime < DOUBLETAPTIME)
+        if (Time.time - PreviousTapTime < Define.DOUBLETAPTIME)
         {
             PreviousTapTime = Time.time;
 			if (getFlag == true) return;
@@ -269,7 +411,7 @@ public class ButtonItemView : MonoBehaviour
         }
         PreviousTapTime = Time.time;
 
-        if (obj.transform.localPosition.y < (iconPos.y - SIZE_ICON))//下にドラッグされてたら何もしない。
+        if (obj.transform.localPosition.y < (iconInitialPos.y - itemIconSize))//下にドラッグされてたら何もしない。
         {
             return;
         }
@@ -300,20 +442,21 @@ public class ButtonItemView : MonoBehaviour
     public void IconDragEnd (GameObject obj){
 		if (cantap == false) return;
 		if (getFlag == true) return;
-		if (obj.transform.localPosition.y < (iconPos.y - SIZE_ICON)){//アイコンを下にドラッグして離した時
+		if (obj.transform.localPosition.y < (iconInitialPos.y - itemIconSize)){//アイコンを下にドラッグして離した時
             transform.localPosition = obj.transform.localPosition;
             GetComponent<Image>().sprite = obj.GetComponent<Image>().sprite;
             GetComponent<Image>().enabled = true;
             StartCoroutine(MovePos(this.gameObject , Vector3.zero));//真ん中へ
-            GetComponent<RectTransform>().sizeDelta = new Vector2(SIZE_ICON,SIZE_ICON);
-            StartCoroutine(ChangeSize(this.gameObject, new Vector2(SIZE_VIEW,SIZE_VIEW)));
+            GetComponent<RectTransform>().sizeDelta = new Vector2(itemIconSize,itemIconSize);
+            StartCoroutine(ChangeSize(this.gameObject, new Vector2(Define.ITEMVIEW_IDEALSIZE,Define.ITEMVIEW_IDEALSIZE)));
 			buttonDark.GetComponent<Image>().enabled = true;
             shown = obj.name;
             isShowing = true;
         }
             StartCoroutine(//元の場所に戻す
-                    MovePos(obj, new Vector3(iconPos.x + -(SIZE_ICON + ICONMARGIN) 
-                                             * (items.Count - (items.FindIndex(x => x.name == obj.name)  + 1)), iconPos.y, iconPos.z))
+                    MovePos(obj, new Vector3(iconInitialPos.x + -(itemIconSize + Define.ITEMICON_MARGIN) 
+		                                     * (items.Count - (items.FindIndex(x => x.name == obj.name)  + 1)) + scrollPos
+		                                     , iconInitialPos.y, iconInitialPos.z))
                 );
     }
 
@@ -335,12 +478,14 @@ public class ButtonItemView : MonoBehaviour
 		if (cantap == false) return;
         gameManager.GetComponent<GameManager>().ItemViewClicked();
     }
+	#endregion
+
 	//--------------------------------------------------------------------
-    //                    子ルーチン系
-    //--------------------------------------------------------------------
+	//                    子ルーチン系
+	//--------------------------------------------------------------------
+	#region//コルーチン系
 
-
-    private IEnumerator MovePos (GameObject obj , Vector3 finishpos){//イージングで位置を移動する
+	private IEnumerator MovePos (GameObject obj , Vector3 finishpos){//イージングで位置を移動する
         float startTime = Time.time;
         Vector3 startPos = obj.transform.localPosition;
         Vector3 moveDistance = finishpos - startPos; // 変化量
@@ -369,21 +514,24 @@ public class ButtonItemView : MonoBehaviour
 
 	private IEnumerator GetEffect ()
 	{
+		//ピュイーんしょーる間はinput効かんようにする
 		//ButtonItemViewのImageを縮小しながらiconの位置へ移動させてエフェクトとする(もっといい方法あると
 		//思うけどめんどくさい。
+
+		inputManager.GetComponent<InputManager>().SetEventSystemEnableAndCanSet(false);
 		float startTime = Time.time;    // 開始時間
 		float startSize = GetComponent<RectTransform> ().sizeDelta.x;  // 開始位置
 		Vector3 startPos = transform.localPosition;
-		float changeSize = SIZE_ICON - startSize; // 変化量
-		Vector3 moveDistance = (iconPos - startPos);
+		float changeSize = itemIconSize - startSize; // 変化量
+		Vector3 moveDistance = (iconInitialPos - startPos);
 		float easingSize;
 
   		for (int i = 0; i < items.Count - 1; ++i)
         {//既存のアイコンの位置整理
-            if ((int)items[i].transform.localPosition.x != (int)(iconPos.x + (SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1))))
+            if ((int)items[i].transform.localPosition.x != (int)(iconInitialPos.x + (itemIconSize + Define.ITEMICON_MARGIN) * (items.Count - (i + 1))))
             {
                 StartCoroutine(
-                    MovePos(items[i], new Vector3(iconPos.x + -(SIZE_ICON + ICONMARGIN) * (items.Count - (i + 1)), iconPos.y, iconPos.z))
+                    MovePos(items[i], new Vector3(iconInitialPos.x + -(itemIconSize + Define.ITEMICON_MARGIN) * (items.Count - (i + 1)), iconInitialPos.y, iconInitialPos.z))
                 );
             }
         }
@@ -406,16 +554,21 @@ public class ButtonItemView : MonoBehaviour
 			
 		items [items.Count - 1].GetComponent<Button> ().image.enabled = true;//icon表示
 		//items [items.Count - 1].GetComponent<Image> ().enabled = true;
-		items [items.Count - 1].transform.localPosition = iconPos;//iconの初期位置に配置
+		items [items.Count - 1].transform.localPosition = iconInitialPos;//iconの初期位置に配置
 		//items [items.Count - 1].transform.localPosition = new Vector3 (0.0f, 0.0f, 0.0f);//iconの初期位置に配置
 		this.GetComponent<Image> ().enabled = false;//ButtonItemViewを非表示
 		yield return null;//1フレーム後に再開　これを入れないと１行下で真ん中に戻った時に真ん中に表示される
 		this.transform.localPosition = new Vector3 (0.0f, 0.0f, 0.0f);//ButtonItemViewを元の位置にもどす
         
 		getFlag = false;
+		if (iconScrollBar.activeSelf) iconScrollBar.GetComponent<HorizontalScrrolBar>().CanDrag = true;
+		CheckIconWidth();
 		SetIconCanDrag(true);
 		isShowing = false;
+		inputManager.GetComponent<InputManager>().SetEventSystemEnableAndCanSet(true);
 	}
+
+	#endregion
 
 	public void SetIconCanDrag(bool b){
 		foreach(GameObject obj in items){
@@ -423,5 +576,36 @@ public class ButtonItemView : MonoBehaviour
 		}
 	}
 
+    
+	public void OnScrollBarMoved(float pos){
+		Debug.Log("event Handled!!!!!" + "pos = " + pos.ToString());
+		scrollPos = pos;
+		IconPosUpdate(false);
+	}
 
-}
+	void CheckIconWidth(){//アイテムアイコンの幅をチェックして画面からはみ出していたら、スクロールバーを表示、はみ出してなかったら非表示
+		float iconwidth = items.Count * itemIconSize + (items.Count - 1) * Define.ITEMICON_MARGIN;
+
+		Debug.Log(this.name + ":CheckIconWidth()" + "iconwidth = " + iconwidth.ToString() + "Screen.width = " 
+		          + Screen.width.ToString() + "Define.CANBUS_WIDTH = " + Define.CANBUS_WIDTH.ToString()
+		          + "items.Count = " + items.Count
+		         );
+
+		if( Define.CANBUS_WIDTH < iconwidth ){
+			iconScrollBar.SetActive(true);
+			float surplusPixels = iconwidth - Screen.width;//画面からはみ出した分のピクセル数
+			float iconScrollPos = 1.0f - ((surplusPixels - scrollPos) / surplusPixels);
+			iconScrollBar.GetComponent<HorizontalScrrolBar>().Display(iconwidth, iconScrollPos);
+		}else{
+			iconScrollBar.GetComponent<HorizontalScrrolBar>().Hide();
+			iconScrollBar.SetActive(false);
+			scrollPos = 0.0f;
+		}
+
+	}
+    
+    
+
+ 
+
+}//class

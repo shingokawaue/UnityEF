@@ -18,6 +18,7 @@ ff05dcdf90651c3d98a9cad3df5e471e UnityEngine.Timeline.dll:UnityEngine.Timeline.C
 30afa8783a8bbee2e465ec9ce1efaee2 UnityEngine.Timeline.dll:UnityEngine.Timeline.GroupTrack
 30afa8783a8bbee2e465ec9ce1efaee2 UnityEngine.Timeline.dll:UnityEngine.Timeline.PlayableTrack
 607d64d2c4bc76ac9876e6f7b9cc7edf UnityEngine.Timeline.dll:UnityEngine.Timeline.TimelineAsset
+8b12e6424d097ef0996cc5f3993bbd95 Assembly-CSharp.dll:.ReplacementPuzzle4
 9fc828733af780bee33400d9b5a51ed7 Assembly-CSharp.dll:.DragMoveUICamera
 a35dc9cca2faebc5f5f1aeb9e8e47bbe UnityEngine.UI.dll:UnityEngine.UI.AspectRatioFitter
 05524b8f659e7bfe5756d1335fec24ba UnityEngine.UI.dll:UnityEngine.EventSystems.BaseInput
@@ -132,9 +133,12 @@ e061548c09c12903465bb2b5cf7b18a1 Assembly-CSharp.dll:.ButtonItemView
 a7d3c6c6948d99dd4116e659ddcf5ac4 Assembly-CSharp-firstpass.dll:UnityStandardAssets.CrossPlatformInput.ButtonHandler
 205965134a5874db410d674ebdf33ba7 Assembly-CSharp.dll:.ExampleWheelController
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp-firstpass.dll:UnityStandardAssets.CrossPlatformInput.MobileControlRig
-6208519002c46486902c8d82c3413011 Assembly-CSharp.dll:.CameraSwitchCrossFade
+05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.DisplayMessage
+12c88f472b902f3bd5cb96ac4d7e4d49 Assembly-CSharp.dll:.CameraSwitchCrossFade
+05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.ItemGetCollider
 aafc2b46bd32460976adddbdaba5eea8 Assembly-CSharp.dll:.FadeManager
 16756866ef08c5c05c6229db9418c551 Assembly-CSharp-firstpass.dll:UnityStandardAssets.Cameras.FreeLookCam
+05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.InputManager
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.TitleManager
 c993dfa966959cba206fbeee342001f8 Assembly-CSharp.dll:.ButtonFlash
 fc1e0f4d8439d9928083474691511a13 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkAnimator
@@ -175,9 +179,9 @@ c2275a8bfbb9f9942cad75ecdfded41d UnityEngine.HoloLens.dll:UnityEngine.XR.WSA.Spa
 dda6aa758424c4abff31eaa0be3591c9 Assembly-CSharp.dll:.ButtonDirectionManager
 a764ed39791e886a53f13cfce418447e Assembly-CSharp.dll:UnityEngine.PostProcessing.PostProcessingProfile
 9de3a22eca9aefadba2d10d5987cefe3 UnityEngine.SpatialTracking.dll:UnityEngine.SpatialTracking.TrackedPoseDriver
-47220d8c927d8074c50bf4e9901a8425 Assembly-CSharp.dll:.GameManager
+16fc4a71a4f3928f0c8be2fb12d1b7bd Assembly-CSharp.dll:.GameManager
 a8796ecdc9d5c260bbe32f30c4b10708 Assembly-CSharp-firstpass.dll:UnityStandardAssets.CrossPlatformInput.TouchPad
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.ButtonItemIcon
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.DoubleClick
-f59707a65b7eef45a21ecbff40897f4b Assembly-CSharp.dll:.Fade
 05524b8f659e7bfe5756d1335fec24ba Assembly-CSharp.dll:.EventSystemController
+f59707a65b7eef45a21ecbff40897f4b Assembly-CSharp.dll:.Fade

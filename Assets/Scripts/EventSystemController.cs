@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+//使ってない
+
 // 必ずEventSystemにアタッチさせます
 [RequireComponent(typeof(EventSystem))]
 public class EventSystemController : MonoBehaviour

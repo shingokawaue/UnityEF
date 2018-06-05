@@ -5,6 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - UICamera
+  - ScreenPanel
+  - AudioManager
+  - InputManager
+  - ValueShareManager
+  - GameManager
+  - RawImageVideo
   layers:
   - Default
   - TransparentFX

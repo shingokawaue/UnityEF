@@ -241,6 +241,8 @@
 /Users/shingo/repos/UnityEscapeFirst/obj/Debug/Assembly-CSharp.csproj.CoreCompileInputs.cache
 /Users/shingo/repos/UnityEscapeFirst/obj/Debug/Assembly-CSharp.dll
 /Users/shingo/repos/UnityEscapeFirst/obj/Debug/Assembly-CSharp.pdb
+/Users/shingo/repos/UnityEF/obj/Debug/Assembly-CSharp.csprojResolveAssemblyReference.cache
+/Users/shingo/repos/UnityEF/obj/Debug/Assembly-CSharp.csproj.CoreCompileInputs.cache
 /Users/shingo/repos/UnityEF/Temp/bin/Debug/Assembly-CSharp.dll
 /Users/shingo/repos/UnityEF/Temp/bin/Debug/Assembly-CSharp.pdb
 /Users/shingo/repos/UnityEF/Temp/bin/Debug/Boo.Lang.dll
@@ -480,7 +482,5 @@
 /Users/shingo/repos/UnityEF/Temp/bin/Debug/UnityEngine.ClusterRendererModule.xml
 /Users/shingo/repos/UnityEF/Temp/bin/Debug/Unity.UNetWeaver.dll.mdb
 /Users/shingo/repos/UnityEF/Temp/bin/Debug/Unity.IvyParser.dll.mdb
-/Users/shingo/repos/UnityEF/obj/Debug/Assembly-CSharp.csprojResolveAssemblyReference.cache
-/Users/shingo/repos/UnityEF/obj/Debug/Assembly-CSharp.csproj.CoreCompileInputs.cache
 /Users/shingo/repos/UnityEF/obj/Debug/Assembly-CSharp.dll
 /Users/shingo/repos/UnityEF/obj/Debug/Assembly-CSharp.pdb

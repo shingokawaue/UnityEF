@@ -10,14 +10,14 @@ public class PanelSlider : MonoBehaviour
 	/// <summary>
 	/// panelにアタッチするスクリプト
 	/// </summary>
+	/// 
 	public bool isSliding = false;
 	public AnimationCurve animCurve = AnimationCurve.Linear (0, 0, 1, 1);
 	private Vector3 startPos;
 	private Vector3 finishPos;
 	private float duration;
-//何秒スライドし終わるか
-
-
+	//何秒スライドし終わるか
+ 
 	public void SetSlide (Vector3 to, float dur)
 	{
 		finishPos = to;
@@ -41,8 +41,8 @@ public class PanelSlider : MonoBehaviour
 			yield return 0;        // 1フレーム後、再開
 		}
 		transform.localPosition = startPos + moveDistance;
-		if (finishPos == new Vector3 (-3200f, 0.0f, 0.0f)) {//右端からダミーに移動した後の処理
-			transform.localPosition = new Vector3 (0.0f, 0.0f, 0.0f);
+		if (finishPos == new Vector3 (-3200f, 0.0f , 0.0f)) {//右端からダミーに移動した後の処理
+			transform.localPosition = new Vector3 (0.0f, 0.0f , 0.0f);
 		}
 
 		isSliding = false;
