@@ -1,16 +1,15 @@
 ﻿<Properties StartupConfiguration="{74FB72F4-C514-6014-1728-57A136F10B4B}|">
   <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GameManager.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/DisplayMessageManager.cs">
     <Files>
-      <File FileName="Assets/Scripts/GameManager.cs" Line="1349" Column="2" />
+      <File FileName="Assets/Scripts/GameManager.cs" Line="11" Column="25" />
       <File FileName="Assets/Scripts/Common.cs" Line="28" Column="36" />
       <File FileName="Assets/Scripts/SaveData.cs" Line="35" Column="76" />
+      <File FileName="Assets/Scripts/HintString.cs" Line="8" Column="42" />
       <File FileName="Assets/Scripts/ButtonItemView.cs" Line="56" Column="1" />
-      <File FileName="Assets/Scripts/HorizontalScrrolBar.cs" Line="15" Column="1" />
-      <File FileName="Assets/Scripts/ValueShareManager.cs" Line="57" Column="39" />
+      <File FileName="Assets/Scripts/ValueShareManager.cs" Line="60" Column="2" />
       <File FileName="Assets/Scripts/AudioManager.cs" Line="94" Column="1" />
-      <File FileName="Assets/Scripts/ReplacementPuzzle4.cs" Line="142" Column="5" />
-      <File FileName="Assets/Scripts/ButtonWithNumber.cs" Line="18" Column="22" />
+      <File FileName="Assets/Scripts/DisplayMessageManager.cs" Line="18" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />

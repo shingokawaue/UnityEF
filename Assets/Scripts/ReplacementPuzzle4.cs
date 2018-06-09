@@ -4,6 +4,7 @@ using UnityEngine;
 
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 using System;//(EventArgs
 using Common;
 //４つのアナを持つ方角パズル。操作出来る拡大ビューと少し引いたビュー２つのビューに対応する
@@ -15,15 +16,8 @@ using Common;
 
 public class ReplacementPuzzle4 : MonoBehaviour
 {
-	public event EventHandler PuzzlePieceMoved;
+	public UnityEvent OnPuzzlePieceMoved;//Unity特有のイベントコールバック方法。クラスです！
 
-	protected virtual void OnPuzzlePieceMoved(EventArgs e)//派生クラスの拡張性を損なわないために、引数をつけ、protectedをつける。
-	{//イベントを発生させるクラスにプロテクト メソッドを提供します。 メソッドに OnEventName という名前を付けます。
-		//このメソッド内で対象のイベントを発生させます。 C# コードでは、イベントを発生させる前にイベントが null かどうかを確認する必要があることに注意してください。
-		//これによって、イベント ハンドラーが関連付けられていない場合にイベントの発生時にスローされる NullReferenceException を処理する必要がなくなります。
-		if (PuzzlePieceMoved != null)
-			PuzzlePieceMoved(this,e);
-    }
 
 	GameObject gameManager;
 
@@ -36,7 +30,7 @@ public class ReplacementPuzzle4 : MonoBehaviour
 	int pickedHoleNo = -1;//0~3持っているピースの入っていた穴　何も持ってないときは-1
 	public int PickedHoleNo{
 		set { pickedHoleNo = value; }
-		get { return PickedHoleNo; }
+		get { return pickedHoleNo; }
 	}
 
 	public string[] putSound = new string[4];
@@ -139,7 +133,7 @@ public class ReplacementPuzzle4 : MonoBehaviour
 			putNew = false;
 			PutPickedPiece();
 		}
-		//OnPuzzlePieceMoved(EventArgs.Empty);
+		if (OnPuzzlePieceMoved != null) OnPuzzlePieceMoved.Invoke();//コールバック！
 		UpdatePieceImage();
 	}
 
@@ -149,7 +143,7 @@ public class ReplacementPuzzle4 : MonoBehaviour
 			pickedPiece = -1;
 			UpdatePieceImage();
 		}
-		OnPuzzlePieceMoved(EventArgs.Empty);
+		if (OnPuzzlePieceMoved != null) OnPuzzlePieceMoved.Invoke();//コールバック！
 	}
 
 	public void PutNewPiece(int pieceNo ,int holeNo){//GameManagerから呼ぶ

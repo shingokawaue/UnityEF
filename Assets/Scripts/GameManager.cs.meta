@@ -1,11 +1,38 @@
 fileFormatVersion: 2
 guid: edc7eeccdb0580945911b3266158e1d8
-timeCreated: 1523276496
-licenseType: Free
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - mainCamera: {fileID: 100000, guid: 174090ae7f9eff84abe76f0ff062efac, type: 2}
+  - subCamera: {instanceID: 0}
+  - subsubCamera: {instanceID: 0}
+  - videoPlayerMonkey: {instanceID: 0}
+  - videoPlayerRedKey: {instanceID: 0}
+  - videoPlayerCutKey: {instanceID: 0}
+  - videoPlayerDog: {instanceID: 0}
+  - videoPlayerScissors: {instanceID: 0}
+  - pencilAnimation: {instanceID: 0}
+  - panelWalls: {instanceID: 0}
+  - panelZooms: {instanceID: 0}
+  - panelZoomZooms: {instanceID: 0}
+  - panelWall1: {instanceID: 0}
+  - buttonUILeft: {instanceID: 0}
+  - buttonUIRight: {instanceID: 0}
+  - buttonUIBack: {instanceID: 0}
+  - buttonMessage: {instanceID: 0}
+  - buttonItemView: {instanceID: 0}
+  - imageGetGlassDoor: {instanceID: 0}
+  - clickAreaPuzzleClose: {instanceID: 0}
+  - imageGetFlowerYellow: {instanceID: 0}
+  - imageWallFrontDogSet: {instanceID: 0}
+  - imageBookShelfDogSet: {instanceID: 0}
+  - imageWallFrontDogBoneSet: {instanceID: 0}
+  - imageBookShelfDogBoneSet: {instanceID: 0}
+  - imagePutChair: {instanceID: 0}
+  - imageNoChair: {instanceID: 0}
+  - imageDirectionPuzzle: {instanceID: 0}
+  - imagePaint: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

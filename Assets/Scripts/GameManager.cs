@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
 	public GameObject mainCamera;
 	public GameObject subCamera;
 	public GameObject subsubCamera;
-
+    
 	GameObject inputManager , audioManager , valueShareManager;
  
 	public GameObject videoPlayerMonkey;
@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
 	public GameObject videoPlayerCutKey;
 	public GameObject videoPlayerDog;
 	public GameObject videoPlayerScissors;
+	public GameObject videoPlayerMonko;
 
 	public GameObject pencilAnimation;
 
@@ -188,11 +189,12 @@ public class GameManager : MonoBehaviour
 		
 	}
 
+
 	void Start()
 	{
 
 		//ApplySaveData();
-		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().PuzzlePieceMoved += OnPuzzlePieceMoved;
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().OnPuzzlePieceMoved.AddListener(() => OnPuzzlePieceMoved());
   
 		screenInfo[(int)EScreenNo.SCREEN_WALLLEFT] = new ScreenInfo(0, ZOOMSTAGE_NON);
 		screenInfo[(int)EScreenNo.SCREEN_WALLFRONT] = new ScreenInfo(1125, ZOOMSTAGE_NON);
@@ -414,7 +416,13 @@ public class GameManager : MonoBehaviour
 			buttonLR[1].GetComponent<ButtonFlash>().canpush = false;
 		}
 
-
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().holes[0] = SaveData.Instance.holes[0];
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().holes[1] = SaveData.Instance.holes[1];
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().holes[2] = SaveData.Instance.holes[2];
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().holes[3] = SaveData.Instance.holes[3];
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().PickedPiece = SaveData.Instance.pickedPiece;
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().PickedHoleNo = SaveData.Instance.pickedHoleNumber;
+		imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().UpdatePieceImage();
 	}
 
 
@@ -945,7 +953,7 @@ public class GameManager : MonoBehaviour
 	public void Click_AreaDeskLeftBottomCantOpen()
 	{
 		audioManager.GetComponent<AudioManager>().PlaySEdontOverRap(Define.SOUND_CANTOPEN02);
-		buttonMessage.GetComponent<DisplayMessageManager>().DisplayMessage("開かない。");
+		buttonMessage.GetComponent<DisplayMessageManager>().DisplayMessage(1.5f,"開かない。");
 	}
 
 	public void Click_AreaLookUpShelf()
@@ -1066,8 +1074,8 @@ public class GameManager : MonoBehaviour
         {
             audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_PATA01);
             AddGameFlag(Define.FLAG_PUT_CUBEDOG);
-            imageBookShelfDogSet.SetActive(true);
-            imageWallFrontDogSet.SetActive(true);
+			imageBookShelfDogSet.GetComponent<Image>().enabled = true;
+			imageWallFrontDogSet.GetComponent<Image>().enabled = true;
             buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUBEDOG);
 
             StartCoroutine(DelayMethod(0.3f, () => { audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4); }));
@@ -1097,14 +1105,14 @@ public class GameManager : MonoBehaviour
 	}
 	#endregion
     
-#region..置いたり、なんかしたり Dog Monkey Monko
+#region..置いたり、なんかしたり Dog Monkey
 	public void Click_AreaCubeDog()
     {
         if (gameFlag.Contains(Define.FLAG_PUT_CUBEDOG) && buttonItemView.GetComponent<ButtonItemView>().selected == "Bone")
         {
             AddGameFlag(Define.FLAG_PUT_BONE);
-            imageBookShelfDogBoneSet.SetActive(true);
-            imageWallFrontDogBoneSet.SetActive(true);
+			imageBookShelfDogBoneSet.GetComponent<Image>().enabled = true;
+			imageWallFrontDogBoneSet.GetComponent<Image>().enabled = true;
             buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_BONE);
             audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
 
@@ -1120,65 +1128,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-	public void Click_AreaMonkoOsara()
-    {
-        if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_OSARA
-           && gameFlag.Contains(Define.FLAG_PUT_MONKO))
-        {
-            foreach (GameObject obj in imageOsara)
-            {
-                obj.GetComponent<Image>().enabled = true;
-            }
-            audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
-            buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_OSARA);
-            AddGameFlag(Define.FLAG_PUT_OSARA);
-        }
 
-        if (gameFlag.Contains(Define.FLAG_PUT_OSARA))
-        {//お皿が置かれていたら、ジンジャーブレッドマン設置の判定をする
-            if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_GINGER1
-               || buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_GINGER2)
-            {
-                if (!gameFlag.Contains(Define.FLAG_PUT_ONEGINGER))
-                {//1個目おく
-                    foreach (GameObject obj in imageGinger1)
-                    {
-                        obj.GetComponent<Image>().enabled = true;
-                    }
-                    audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
-                    AddGameFlag(Define.FLAG_PUT_ONEGINGER);
-                }
-                else
-                {//2個目置く
-                    foreach (GameObject obj in imageGinger2)
-                    {
-                        obj.GetComponent<Image>().enabled = true;
-                    }
-                    audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
-                    AddGameFlag(Define.FLAG_PUT_TWOGINGER);
-                }
-                buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(
-                    buttonItemView.GetComponent<ButtonItemView>().selected);
-            }
-            if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_TWOGINGERS)
-            {//2個一気に置く
-                foreach (GameObject obj in imageGinger1)
-                {
-                    obj.GetComponent<Image>().enabled = true;
-                }
-                foreach (GameObject obj in imageGinger2)
-                {
-                    obj.GetComponent<Image>().enabled = true;
-                }
-                audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
-                AddGameFlag(Define.FLAG_PUT_ONEGINGER);
-                AddGameFlag(Define.FLAG_PUT_TWOGINGER);
-                buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_TWOGINGERS);
-            }
-
-        }
-
-    }
 
 	public void Click_AreaKitchenShelfZoomMonkey()
     {
@@ -1221,6 +1171,10 @@ public class GameManager : MonoBehaviour
 
     }
 
+	#endregion
+
+	#region..Monko
+
 	public void Click_AreaMonko()
     {
         if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_MONKO)
@@ -1242,7 +1196,78 @@ public class GameManager : MonoBehaviour
         }
     }
 
+	public void Click_AreaMonkoOsara()
+    {
+        if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_OSARA
+           && gameFlag.Contains(Define.FLAG_PUT_MONKO))
+        {
+            foreach (GameObject obj in imageOsara)
+            {
+                obj.GetComponent<Image>().enabled = true;
+            }
+            audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+            buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_OSARA);
+            AddGameFlag(Define.FLAG_PUT_OSARA);
+        }
 
+        if (gameFlag.Contains(Define.FLAG_PUT_OSARA))
+        {//お皿が置かれていたら、ジンジャーブレッドマン設置の判定をする
+            if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_GINGER1
+               || buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_GINGER2)
+            {
+                if (!gameFlag.Contains(Define.FLAG_PUT_ONEGINGER))
+                {//1個目おく
+                    foreach (GameObject obj in imageGinger1)
+                    {
+                        obj.GetComponent<Image>().enabled = true;
+                    }
+                    audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+                    AddGameFlag(Define.FLAG_PUT_ONEGINGER);
+                }
+                else
+                {//2個目置く
+                    foreach (GameObject obj in imageGinger2)
+                    {
+                        obj.GetComponent<Image>().enabled = true;
+                    }
+                    audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+                    AddGameFlag(Define.FLAG_PUT_TWOGINGER);
+                }
+                buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(
+                    buttonItemView.GetComponent<ButtonItemView>().selected);
+				if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
+				    && gameFlag.Contains(Define.FLAG_PUT_CUTFLOWER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2) 
+				    && !gameFlag.Contains(Define.FLAG_OPEN_PAINT))                                          
+                {//条件が整っていれば動画再生
+                    StartCoroutine(PlayMonkoVideo());
+                }
+            }
+            if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_TWOGINGERS)
+            {//2個一気に置く
+                foreach (GameObject obj in imageGinger1)
+                {
+                    obj.GetComponent<Image>().enabled = true;
+                }
+                foreach (GameObject obj in imageGinger2)
+                {
+                    obj.GetComponent<Image>().enabled = true;
+                }
+                audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+                AddGameFlag(Define.FLAG_PUT_ONEGINGER);
+                AddGameFlag(Define.FLAG_PUT_TWOGINGER);
+                buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_TWOGINGERS);
+
+            }
+
+        }
+
+		if( gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_CUTFLOWER)
+				                                              && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
+				                                                        && !gameFlag.Contains(Define.FLAG_OPEN_PAINT) )
+         {//条件が整っていれば動画再生
+            StartCoroutine(PlayMonkoVideo());
+        }
+    }
 
     public void Click_AreaMonkoRightHole()
     {
@@ -1255,6 +1280,11 @@ public class GameManager : MonoBehaviour
             audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
             AddGameFlag(Define.FLAG_PUT_CUTFLOWER);
             buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUTFLOWER);
+			if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
+                                                                && !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
+            {//条件が整っていれば動画再生
+                StartCoroutine(PlayMonkoVideo());
+            }
             return;
         }
 
@@ -1280,6 +1310,11 @@ public class GameManager : MonoBehaviour
             audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
             AddGameFlag(Define.FLAG_PUT_CUTFLOWERYELLOW);
             buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUTFLOWERYELLOW);
+
+			if(gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
+			                                                    && !gameFlag.Contains(Define.FLAG_OPEN_PAINT)){//条件が整っていれば動画再生
+				StartCoroutine(PlayMonkoVideo());
+			}
             return;
         }
         if (!gameFlag.Contains(Define.FLAG_PUT_CUTFLOWERYELLOW))
@@ -1322,6 +1357,14 @@ public class GameManager : MonoBehaviour
 
         }
     }
+
+	public void Click_AreaZoomMonko(){
+		if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
+                                                                && !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
+        {//条件が整っていれば動画再生
+            StartCoroutine(PlayMonkoVideo());
+        }	
+	}
 #endregion
 
  
@@ -1377,7 +1420,7 @@ public class GameManager : MonoBehaviour
 
     }
     //自作イベント
-	void OnPuzzlePieceMoved(object sender,EventArgs e)
+	void OnPuzzlePieceMoved()
     {
 		SaveData.Instance.holes[0] = imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().holes[0];
 		SaveData.Instance.holes[1] = imageDirectionPuzzle.GetComponent<ReplacementPuzzle4>().holes[1];
@@ -1648,6 +1691,43 @@ public class GameManager : MonoBehaviour
 		videoPlayerScissors.GetComponent<VideoPlayer>().Stop();
 		videoPlayerScissors.SetActive(false);
 	}
+
+	private IEnumerator PlayMonkoVideo()
+    {
+        videoPlayerMonko.SetActive(true);
+        SetMoveButtonFalse();
+        inputManager.GetComponent<InputManager>().SetEventSystemEnableAndCanSet(false);
+		//videoPlayerMonko.GetComponent<VideoPlayer>().Play();
+		//videoPlayerMonko.GetComponent<VideoPlayer>().Pause();
+		while (videoPlayerMonko.GetComponent<VideoPlayer>().isPrepared == false)//再生準備待ち
+        {
+			videoPlayerMonko.GetComponent<VideoPlayer>().Prepare(); yield return null;
+        }
+        MovingScreen((int)EScreenNo.SCREEN_VIDEO);
+        yield return new WaitForSeconds(0.8f);
+        audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+        yield return new WaitForSeconds(0.8f);
+		videoPlayerMonko.GetComponent<VideoPlayer>().Play();
+		while (videoPlayerMonko.GetComponent<VideoPlayer>().isPlaying == false) yield return null;//再生待ち
+        yield return new WaitForSeconds(0.3f);//音挿入
+		while (videoPlayerMonko.GetComponent<VideoPlayer>().isPlaying == true)
+        {
+			if ((int)videoPlayerMonko.GetComponent<VideoPlayer>().frame ==
+			    (int)videoPlayerMonko.GetComponent<VideoPlayer>().frameCount)
+            {
+				videoPlayerMonko.GetComponent<VideoPlayer>().Pause();
+                break;
+            }
+            yield return null;//再生終わり待ち               
+        }
+        //yield return new WaitForSeconds(0.8f);//最終フレームでちょい待ち
+		MovingScreenWithoutSound((int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_ZOOMMONKO);
+        yield return new WaitForSeconds(0.8f);
+        UpdateUIButtons();
+        inputManager.GetComponent<InputManager>().SetEventSystemEnableAndCanSet(true);
+		videoPlayerMonko.GetComponent<VideoPlayer>().Stop();
+		videoPlayerMonko.SetActive(false);
+    }
 	#endregion
 
 	//------------------------------------------------------------
@@ -1657,6 +1737,10 @@ public class GameManager : MonoBehaviour
 	{
 		buttonMessage.GetComponent<DisplayMessageManager>().CloseMessage();
 
+	}
+
+	public void DisplayMessage(string str){
+		buttonMessage.GetComponent<DisplayMessageManager>().DisplayMessage(str);
 	}
 
 	void ChangeButtonColor(int buttonNo)

@@ -14,11 +14,12 @@ public class DisplayMessageManager : MonoBehaviour {
 	float duration = 0;//0ならずっと表示
 	GameObject text;
 	// Use this for initialization
-	void Start () {
-		Transform buf;
-		buf = gameObject.transform.Find("Text");
-		text = buf.transform.gameObject;
+	private void Awake()
+	{
+		text = gameObject.transform.Find("Text").transform.gameObject;
+	}
 
+	void Start () {
 		GetComponent<Button>().onClick.AddListener(() => CloseMessage());//onClickのイベントリスナー
 	}
 	
@@ -35,7 +36,7 @@ public class DisplayMessageManager : MonoBehaviour {
 		isShowing = true;
 		duration = 0;
 		this.gameObject.SetActive(true);
-		this.gameObject.GetComponent<Text>().text = mes;
+		text.GetComponent<Text>().text = mes;
     }
 
 	public void DisplayMessage(float time, string mes)
