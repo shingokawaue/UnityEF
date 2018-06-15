@@ -57,17 +57,10 @@
     <Reference Include="UnityEditor">
       <HintPath>/Applications/Unity/Unity.app/Contents/Managed/UnityEditor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.PackageManagerUI.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.PackageManagerUI.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEditor.StandardEvents">
-      <HintPath>Library\ScriptAssemblies\UnityEditor.StandardEvents.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\naichilab\FadeManager\Sample\FadeSample.cs" />
     <Compile Include="Assets\naichilab\FadeManager\Scripts\FadeManager.cs" />
-    <Compile Include="Assets\NewBehaviourScript.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Attributes\GetSetAttribute.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Attributes\MinAttribute.cs" />
     <Compile Include="Assets\PostProcessing\Runtime\Attributes\TrackballAttribute.cs" />
@@ -119,6 +112,7 @@
     <Compile Include="Assets\Scripts\ButtonItemIcon.cs" />
     <Compile Include="Assets\Scripts\ButtonItemView.cs" />
     <Compile Include="Assets\Scripts\ButtonWithNumber.cs" />
+    <Compile Include="Assets\Scripts\CalcCoordinate.cs" />
     <Compile Include="Assets\Scripts\CameraSwitchCrossFade.cs" />
     <Compile Include="Assets\Scripts\Common.cs" />
     <Compile Include="Assets\Scripts\DisplayMessageManager.cs" />
@@ -141,6 +135,8 @@
     <Compile Include="Assets\Scripts\singletonTerashuru.cs" />
     <Compile Include="Assets\Scripts\SmoothlyMover.cs" />
     <Compile Include="Assets\Scripts\TitleManager.cs" />
+    <Compile Include="Assets\Scripts\TransparencyButton.cs" />
+    <Compile Include="Assets\Scripts\TransparencyMap.cs" />
     <Compile Include="Assets\Scripts\ValueShareManager.cs" />
     <None Include="Assets\PostProcessing\Resources\Shaders\DepthOfField.shader" />
     <None Include="Assets\PostProcessing\Resources\Shaders\MotionBlur.cginc" />

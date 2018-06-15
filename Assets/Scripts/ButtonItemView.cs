@@ -20,6 +20,7 @@ public class ButtonItemView : MonoBehaviour
 	public bool cantap = true;
 
 	//適当な画像の入ってないImageをアタッチ
+    [Range(0,1)]
 	public float duration = 0.5f;
 	private float buttonSize;
 	private const float BUTTONMARGIN = 40.0f;

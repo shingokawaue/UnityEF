@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Common;
-public class HintString {
-	/// <summary>
-	/// Key:GameFlag Value:CorrespondingTips
-    /// </summary>
-	public static Dictionary<string, string> hintTable= new Dictionary<string, string>()
-    {
+
+namespace Hint
+{
+	public static class HintString
+	{
+		/// <summary>
+		/// Key:GameFlag Value:CorrespondingTips
+		/// </summary>
+		public static Dictionary<string, string> hintTable = new Dictionary<string, string>()
+	{
 		{Define.FLAG_GET_CHAIR,"イスを使ってみよう！"},
 		{Define.FLAG_OPEN_DIRBOX,"本の矢印の向きをよく見てみよう！"},
 		{Define.FLAG_OPEN_STARBOX,"部屋にある星の数を数えてみよう！"},
@@ -27,6 +31,8 @@ public class HintString {
 		{Define.FLAG_OPEN_LRBOX,"サルの動きをよく見てバナナのボタンを押してみよう！"},
 		{Define.FLAG_OPEN_NUMBERBOX,"サルの目を見てみよう！"}
 
-    };
+	};
 
-}
+	}//class
+
+}//namespace
