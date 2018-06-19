@@ -156,7 +156,7 @@ namespace Common
 		public const string FLAG_PUT_CUTFLOWERYELLOW = "Put_CutFlowerYellow";
 		public const string FLAG_OPENDOOR = "OpenDoor";
 		public const string FLAG_OPEN_PAINT = "Open_Paint";
-		//public const string FLAG_ = "";
+		public const string FLAG_PUT_HEART = "Put_Heart";
 		//public const string FLAG_ = "";
 
 		public const string FLAG_GET_CHAIR = "Get_Chair";

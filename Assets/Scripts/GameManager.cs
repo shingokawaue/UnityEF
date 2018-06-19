@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
 	ScreenInfo[] screenInfo = new ScreenInfo[(int)EScreenNo.SCREEN_NUM];
 	public GameObject mainCamera, subCamera, subsubCamera;
 	GameObject inputManager, audioManager, valueShareManager;//使い方違う
-	public GameObject videoPlayerMonkey, videoPlayerRedKey, videoPlayerCutKey, videoPlayerDog, videoPlayerScissors, videoPlayerMonko;
+	public GameObject videoPlayerMonkey, videoPlayerRedKey, videoPlayerCutKey, videoPlayerDog, videoPlayerScissors, videoPlayerMonko, videoPlayerMonkeyLove;
 	public GameObject pencilAnimation;
 	public GameObject panelWalls, panelZooms, panelZoomZooms, panelWall1;
 	//-------------------------------------------------------------------------------------------------------
@@ -131,6 +131,7 @@ public class GameManager : MonoBehaviour
 		SCREEN_ZOOMSTAGE_MONKOHEAD,
 		//35↑
 		SCREEN_ZOOMSTAGE_PAINT,
+		SCREEN_ZOOMSTAGE_WALLBACKDOORZOOM,
 
 		SCREEN_NUM
 	}
@@ -166,6 +167,7 @@ public class GameManager : MonoBehaviour
 		screenInfo[(int)EScreenNo.SCREEN_ZOOMSTAGE_DIRECTIONPUZZLE] = new ScreenInfo(5625, Define.ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_KITCHENSHELFBOTTOMOPEN, Define.SOUND_AVOID, Define.SOUND_AVOID);
 		screenInfo[(int)EScreenNo.SCREEN_ZOOMSTAGE_MONKOHEAD] = new ScreenInfo(6750, Define.ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_ZOOMMONKO);
 		screenInfo[(int)EScreenNo.SCREEN_ZOOMSTAGE_PAINT] = new ScreenInfo(-6750, Define.ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLBACK);
+		screenInfo[(int)EScreenNo.SCREEN_ZOOMSTAGE_WALLBACKDOORZOOM] = new ScreenInfo(7875, Define.ZOOMSTAGE_ZOOM, (int)EScreenNo.SCREEN_WALLBACK);
 
 		screenInfo[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_STARBOX] = new ScreenInfo(-1125, Define.ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ADDSTAGE_4X2SHELFRIGHT);
 		screenInfo[(int)EScreenNo.SCREEN_ZOOMZOOMSTAGE_DESKLEFTTOP] = new ScreenInfo(0, Define.ZOOMSTAGE_ZOOMZOOM, (int)EScreenNo.SCREEN_ZOOMSTAGE_DESKLEFT, Define.SOUND_DRAWER01, Define.SOUND_DRAWERCLOSE02);
@@ -1048,6 +1050,18 @@ public class GameManager : MonoBehaviour
 	#endregion
 
 	#region..ClickArea 置いたり、なんかしたり Dog Monkey
+	public void Click_AreaHeart()
+	{
+		if (gameFlag.Contains(Define.FLAG_PUT_HEART))
+		{
+
+		}
+		else
+		{
+			buttonMessage.GetComponent<DisplayMessageManager>().DisplayMessage(2.0f, "ハート型のくぼみがある。");
+		}
+	}
+
 	public void Click_AreaCubeDog()
 	{
 		if (gameFlag.Contains(Define.FLAG_PUT_CUBEDOG) && buttonItemView.GetComponent<ButtonItemView>().selected == "Bone")
@@ -1095,6 +1109,8 @@ public class GameManager : MonoBehaviour
 			}
 
 			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(buttonItemView.GetComponent<ButtonItemView>().selected);
+
+			if (MonkeyLoveCheckAndPlay()) return;
 			if (gameFlag.Contains(Define.FLAG_PUT_BANANA2) && !gameFlag.Contains(Define.FLAG_OPEN_LRBOX) && !gameFlag.Contains(Define.FLAG_PUT_MONKO))
 			{
 				StartCoroutine(PlayMonkeyVideo());
@@ -1106,6 +1122,7 @@ public class GameManager : MonoBehaviour
 			}
 		}
 
+		//置かずにクリックした時
 		if (gameFlag.Contains(Define.FLAG_PUT_BANANA2) && !gameFlag.Contains(Define.FLAG_OPEN_LRBOX) && !gameFlag.Contains(Define.FLAG_PUT_MONKO))
 		{
 			StartCoroutine(PlayMonkeyVideo());
@@ -1115,7 +1132,7 @@ public class GameManager : MonoBehaviour
 
 	#endregion
 
-	#region..ClickArea_Monko
+	#region..ClickArea置いたり、なんかしたり_Monko
 
 	public void Click_AreaMonko()
 	{
@@ -1178,11 +1195,11 @@ public class GameManager : MonoBehaviour
 				buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(
 					buttonItemView.GetComponent<ButtonItemView>().selected);
 				if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
-					&& gameFlag.Contains(Define.FLAG_PUT_CUTFLOWER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
-					&& !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
+					&& gameFlag.Contains(Define.FLAG_PUT_CUTFLOWER) && !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
 				{//条件が整っていれば動画再生
 					StartCoroutine(PlayMonkoVideo());
 				}
+				MonkeyLoveCheckAndPlay();
 			}
 			if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_TWOGINGERS)
 			{//2個一気に置く
@@ -1204,8 +1221,7 @@ public class GameManager : MonoBehaviour
 		}
 
 		if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_CUTFLOWER)
-															  && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
-																		&& !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
+			 && gameFlag.Contains(Define.FLAG_PUT_BANANA2) && !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
 		{//条件が整っていれば動画再生
 			StartCoroutine(PlayMonkoVideo());
 		}
@@ -1213,22 +1229,7 @@ public class GameManager : MonoBehaviour
 
 	public void Click_AreaMonkoRightHole()
 	{
-		if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_CUTFLOWER)//花を置く
-		{
-			foreach (GameObject obj in imageFlower)
-			{
-				obj.GetComponent<Image>().enabled = true;
-			}
-			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
-			AddGameFlag(Define.FLAG_PUT_CUTFLOWER);
-			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUTFLOWER);
-			if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
-																&& !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
-			{//条件が整っていれば動画再生
-				StartCoroutine(PlayMonkoVideo());
-			}
-			return;
-		}
+		PutFlower();
 
 		if (!gameFlag.Contains(Define.FLAG_PUT_CUTFLOWER))
 		{
@@ -1241,7 +1242,28 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public void Click_AreaMonkoLeftHole()
+	void PutFlower()
+	{
+		if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_CUTFLOWER)//花を置く
+		{
+			foreach (GameObject obj in imageFlower)
+			{
+				obj.GetComponent<Image>().enabled = true;
+			}
+			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
+			AddGameFlag(Define.FLAG_PUT_CUTFLOWER);
+			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUTFLOWER);
+			if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
+				&& !gameFlag.Contains(Define.FLAG_PUT_CUTFLOWERYELLOW) && !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
+			{//条件が整っていれば動画再生
+				StartCoroutine(PlayMonkoVideo());
+			}
+			MonkeyLoveCheckAndPlay();
+			return;
+		}
+	}
+
+	void PutFlowerYellow()
 	{
 		if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_CUTFLOWERYELLOW)//花を置く
 		{
@@ -1251,15 +1273,13 @@ public class GameManager : MonoBehaviour
 			}
 			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
 			AddGameFlag(Define.FLAG_PUT_CUTFLOWERYELLOW);
-			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUTFLOWERYELLOW);
-
-			if (gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) && gameFlag.Contains(Define.FLAG_PUT_BANANA2)
-																&& !gameFlag.Contains(Define.FLAG_OPEN_PAINT))
-			{//条件が整っていれば動画再生
-				StartCoroutine(PlayMonkoVideo());
-			}
+			MonkeyLoveCheckAndPlay();
 			return;
 		}
+	}
+	public void Click_AreaMonkoLeftHole()
+	{
+		PutFlowerYellow();
 		if (!gameFlag.Contains(Define.FLAG_PUT_CUTFLOWERYELLOW))
 		{
 			buttonMessage.GetComponent<DisplayMessageManager>().DisplayMessage(2.0f, "何かを差しこめそうな穴がある。");
@@ -1274,31 +1294,12 @@ public class GameManager : MonoBehaviour
 
 	public void Click_AreaKichenMonkoRightHead()
 	{
-		if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_CUTFLOWER)
-		{
-			foreach (GameObject obj in imageFlower)
-			{
-				obj.GetComponent<Image>().enabled = true;
-			}
-			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
-			AddGameFlag(Define.FLAG_PUT_CUTFLOWER);
-			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUTFLOWER);
-		}
+		PutFlower();
 	}
 
 	public void Click_AreaKichenMonkoLefttHead()
 	{
-		if (buttonItemView.GetComponent<ButtonItemView>().selected == Define.ITEM_CUTFLOWERYELLOW)
-		{
-			foreach (GameObject obj in imageFlowerYellow)
-			{
-				obj.GetComponent<Image>().enabled = true;
-			}
-			audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DECISION4);
-			AddGameFlag(Define.FLAG_PUT_CUTFLOWERYELLOW);
-			buttonItemView.GetComponent<ButtonItemView>().RemoveItemAndUpdatePos(Define.ITEM_CUTFLOWERYELLOW);
-
-		}
+		PutFlowerYellow();
 	}
 
 	public void Click_AreaZoomMonko()
@@ -1523,10 +1524,10 @@ public class GameManager : MonoBehaviour
 		while (videoPlayerRedKey.GetComponent<VideoPlayer>().isPlaying == false) yield return null;//再生待ち
 		yield return new WaitForSeconds(1.9f);//1.9秒あたりに音挿入
 		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_KACHAN05);
-		while (videoPlayerCutKey.GetComponent<VideoPlayer>().isPlaying == true)
+		while (videoPlayerRedKey.GetComponent<VideoPlayer>().isPlaying == true)
 		{
-			if ((int)videoPlayerCutKey.GetComponent<VideoPlayer>().frame >=
-			   (int)videoPlayerCutKey.GetComponent<VideoPlayer>().frameCount)
+			if ((int)videoPlayerRedKey.GetComponent<VideoPlayer>().frame >=
+				(int)videoPlayerRedKey.GetComponent<VideoPlayer>().frameCount)
 			{
 				videoPlayerCutKey.GetComponent<VideoPlayer>().Pause();
 				break;
@@ -1690,11 +1691,60 @@ public class GameManager : MonoBehaviour
 		videoPlayerMonko.GetComponent<VideoPlayer>().Stop();
 		videoPlayerMonko.SetActive(false);
 	}
+
+	private IEnumerator PlayMonkeyLoveVideo()
+	{
+		videoPlayerMonkeyLove.SetActive(true);
+		SetMoveButtonFalse();
+		inputManager.GetComponent<InputManager>().SetEventSystemEnableAndCanSet(false);
+		videoPlayerMonkeyLove.GetComponent<VideoPlayer>().Play();
+		videoPlayerMonkeyLove.GetComponent<VideoPlayer>().Pause();
+		while (videoPlayerMonkeyLove.GetComponent<VideoPlayer>().isPrepared == false)
+		{
+			videoPlayerMonkeyLove.GetComponent<VideoPlayer>().Prepare(); yield return null;
+		}
+		MovingScreen((int)EScreenNo.SCREEN_VIDEO);
+		yield return new WaitForSeconds(0.3f);//１コマ目でしばらく止める
+		videoPlayerMonkeyLove.GetComponent<VideoPlayer>().Play();
+		while (videoPlayerMonkeyLove.GetComponent<VideoPlayer>().isPlaying == false) yield return null;//再生待ち
+		while (videoPlayerMonkeyLove.GetComponent<VideoPlayer>().isPlaying == true)
+		{
+			if ((int)videoPlayerMonkeyLove.GetComponent<VideoPlayer>().frame >=
+				(int)videoPlayerMonkeyLove.GetComponent<VideoPlayer>().frameCount)
+			{
+				videoPlayerMonkeyLove.GetComponent<VideoPlayer>().Pause();
+				break;
+			}
+			yield return null;//再生終わり待ち               
+		}
+		yield return new WaitForSeconds(0.8f);
+		MovingScreenWithoutSound((int)EScreenNo.SCREEN_ZOOMSTAGE_KITCHENSHELF);
+		audioManager.GetComponent<AudioManager>().PlaySE(Define.SOUND_DRAWER11);
+		yield return new WaitForSeconds(0.2f);//最終フレームでちょい待ち
+		UpdateUIButtons();
+		inputManager.GetComponent<InputManager>().SetEventSystemEnableAndCanSet(true);
+		videoPlayerMonkeyLove.GetComponent<VideoPlayer>().Stop();
+		videoPlayerMonkeyLove.SetActive(false);
+
+	}
 	#endregion
 
 	//------------------------------------------------------------
 	//その他
 	//------------------------------------------------------------
+	bool MonkeyLoveCheckAndPlay()
+	{
+		if (gameFlag.Contains(Define.FLAG_PUT_BANANA2) &&
+		   gameFlag.Contains(Define.FLAG_PUT_TWOGINGER) &&
+		   gameFlag.Contains(Define.FLAG_PUT_CUTFLOWER) &&
+		   gameFlag.Contains(Define.FLAG_PUT_CUTFLOWERYELLOW)
+		  )
+		{
+			return true;
+		}
+		return false;
+	}
+
 	void ClearButtons()
 	{
 		buttonMessage.GetComponent<DisplayMessageManager>().CloseMessage();
